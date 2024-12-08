@@ -22,11 +22,7 @@ export function createComponent<
   TInputs extends Record<string, any>,
   TOutputs extends Record<string, any>,
   TRefs extends Record<string, any>
->(
-  executor: ComponentExecutor<TInputs, TOutputs>,
-  // Optional custom mapping - if not provided, uses the output keys directly
-  outputMappings?: Partial<OutputMapping<TOutputs, TRefs>>
-) {
+>(executor: ComponentExecutor<TInputs, TOutputs>) {
   return function (
     props: InputResolver<TInputs> & { outputs: OutputRefs<TOutputs> }
   ): React.ReactElement | null {
