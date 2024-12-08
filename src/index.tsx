@@ -5,9 +5,13 @@ import { BlogWritingWorkflow } from "./BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./TweetWritingWorkflow";
 
 async function main() {
+  const title = "Programmatic Secrets with ESC";
+  const prompt =
+    "Write an article that talks about managing and consuming secrets programmatically using the ESC typescript SDK.";
+
   const blogAndTweetWorkflow = (
     <Workflow>
-      <BlogWritingWorkflow />
+      <BlogWritingWorkflow title={title} prompt={prompt} />
       <TweetWritingWorkflow />
     </Workflow>
   );

@@ -2,15 +2,26 @@ import React, { useContext } from "react";
 import { Step } from "./Step";
 import { ExecutionContext } from "./ExecutionContext";
 import { StepContext } from "./StepContext";
+import { RefType, isRef } from "./ref";
+import { OutputRefs } from "./outputs";
+
+interface WriterOutputs {
+  content: string;
+  metadata: {
+    wordCount: number;
+    readingTime: number;
+    keywords: string[];
+  };
+}
 
 interface LLMWriterProps {
   inputRef: string;
-  outputRef: string;
+  outputs: OutputRefs<WriterOutputs>;
 }
 
 export function LLMWriter({
   inputRef,
-  outputRef,
+  outputs,
 }: LLMWriterProps): React.ReactElement | null {
   const stepContext = useContext(StepContext);
 
@@ -24,14 +35,23 @@ export function LLMWriter({
       if (input === undefined) {
         throw new Error(`LLMWriter: Input ref '${inputRef}' is undefined.`);
       }
-      // Simulate LLM writing
-      const result = `Written content based on: ${input}`;
-      context.setRef(outputRef, result);
-      console.log(`LLMWriter: Set ref '${outputRef}'`);
+
+      // Simulate LLM writing with multiple outputs
+      const content = `Written content based on: ${input}`;
+      const metadata = {
+        wordCount: content.split(" ").length,
+        readingTime: Math.ceil(content.split(" ").length / 200),
+        keywords: ["sample", "content", "test"],
+      };
+
+      context.setRef(outputs.content, content);
+      context.setRef(outputs.metadata, metadata);
+
+      console.log(`LLMWriter: Set content ref '${outputs.content}'`);
+      console.log(`LLMWriter: Set metadata ref '${outputs.metadata}'`);
     },
   };
 
   stepContext.steps.push(step);
-
   return null;
 }
