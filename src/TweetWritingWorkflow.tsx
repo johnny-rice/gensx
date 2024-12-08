@@ -1,5 +1,4 @@
 import React from "react";
-import { UserInput } from "./UserInput";
 import { LLMWriter } from "./LLMWriter";
 import { defineWorkflow } from "./workflow-builder";
 import { Outputs } from "./outputs";
@@ -10,9 +9,6 @@ interface TweetWritingWorkflowProps {
 }
 
 const refs = {
-  // Input refs
-  tweetInput: {} as string,
-
   // Writer refs
   tweet: {} as string,
   tweetMetadata: {} as WriterOutputs["metadata"],
@@ -26,14 +22,8 @@ export const TweetWritingWorkflow = defineWorkflow<
 
   return (
     <>
-      <UserInput
-        value={props.content}
-        outputs={Outputs<typeof refs>({
-          value: "tweetInput",
-        })}
-      />
       <LLMWriter
-        content={Ref("tweetInput")}
+        content={props.content}
         outputs={Outputs<typeof refs>({
           content: "tweet",
           metadata: "tweetMetadata",

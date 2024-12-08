@@ -1,5 +1,4 @@
 import React from "react";
-import { UserInput } from "./UserInput";
 import { LLMResearcher } from "./LLMResearcher";
 import { LLMWriter } from "./LLMWriter";
 import { LLMEditor } from "./LLMEditor";
@@ -32,27 +31,16 @@ const refs = {
 
 export const BlogWritingWorkflow = defineWorkflow<
   BlogWritingWorkflowProps,
+  // TODO we gotta get rid of the need to define the refs here
   typeof refs
 >(refs, (props) => {
   const { Ref } = props;
 
   return (
     <>
-      <UserInput
-        value={props.title}
-        outputs={Outputs<typeof refs>({
-          value: "blogPostTitle",
-        })}
-      />
-      <UserInput
-        value={props.prompt}
-        outputs={Outputs<typeof refs>({
-          value: "blogPostPrompt",
-        })}
-      />
       <LLMResearcher
-        title={Ref("blogPostTitle")}
-        prompt={Ref("blogPostPrompt")}
+        title={props.title}
+        prompt={props.prompt}
         outputs={Outputs<typeof refs>({
           research: "blogResearchResult",
           sources: "blogSources",
