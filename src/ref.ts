@@ -9,12 +9,3 @@ export function createRefFactory<TRefs extends Record<string, any>>() {
     return { __ref: refName as string, __type: null! };
   };
 }
-
-export function getComponentRefs<T extends Record<string, any>>(component: {
-  __refs?: T;
-}): T {
-  if (!component.__refs) {
-    throw new Error("Component does not define refs");
-  }
-  return component.__refs;
-}

@@ -2,7 +2,6 @@ import React from "react";
 import { Workflow, WorkflowContext } from "./Workflow";
 import { BlogWritingWorkflow } from "./BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./TweetWritingWorkflow";
-import { getComponentRefs } from "./ref";
 
 async function main() {
   const title = "Programmatic Secrets with ESC";
