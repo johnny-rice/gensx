@@ -1,8 +1,10 @@
 import React from "react";
 import { Step } from "./Step";
 
-export function collectSteps(element: React.ReactNode): Step[] {
-  const steps: Step[] = [];
+export function collectSteps(
+  element: React.ReactNode
+): Step<Record<string, any>>[] {
+  const steps: Step<Record<string, any>>[] = [];
 
   function traverse(node: React.ReactNode): void {
     if (node == null) return;
@@ -50,7 +52,7 @@ export function collectSteps(element: React.ReactNode): Step[] {
       typeof node.execute === "function"
     ) {
       // Node is a Step object
-      steps.push(node as Step);
+      steps.push(node as Step<Record<string, any>>);
     }
     // Ignore other types (strings, numbers)
   }

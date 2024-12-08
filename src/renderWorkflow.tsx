@@ -4,8 +4,10 @@ import { Step } from "./Step";
 import { StepContext, StepContextValue } from "./StepContext";
 import { ExecutionContext } from "./ExecutionContext";
 
-export function renderWorkflow(element: React.ReactElement): Step[] {
-  const steps: Step[] = [];
+export function renderWorkflow(
+  element: React.ReactElement
+): Step<Record<string, any>>[] {
+  const steps: Step<Record<string, any>>[] = [];
 
   const stepContextValue: StepContextValue = { steps };
 
@@ -23,7 +25,7 @@ export function renderWorkflow(element: React.ReactElement): Step[] {
 
 export async function execute(
   workflow: React.JSX.Element,
-  context?: ExecutionContext
+  context?: ExecutionContext<Record<string, any>>
 ): Promise<void> {
   const steps = renderWorkflow(workflow);
   let workflowContext = context ?? new ExecutionContext();

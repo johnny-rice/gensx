@@ -9,7 +9,7 @@ interface WorkflowProps {
 }
 
 export function Workflow({ children }: WorkflowProps): React.ReactElement {
-  const steps: Step[] = [];
+  const steps: Step<Record<string, any>>[] = [];
   const stepContextValue = { steps };
 
   return (
@@ -19,8 +19,9 @@ export function Workflow({ children }: WorkflowProps): React.ReactElement {
   );
 }
 
-export class WorkflowContext {
-  private context: ExecutionContext = new ExecutionContext();
+export class WorkflowContext<TRefs extends Record<string, any>> {
+  private context: ExecutionContext<TRefs> = new ExecutionContext<TRefs>();
+
   constructor(private workflow: React.JSX.Element) {}
 
   async execute(): Promise<void> {
@@ -28,10 +29,9 @@ export class WorkflowContext {
     for (const step of steps) {
       await step.execute(this.context);
     }
-    return;
   }
 
-  getRef<T>(key: string): T | undefined {
-    return this.context.getRef<T>(key);
+  getRef<K extends keyof TRefs>(key: K): TRefs[K] | undefined {
+    return this.context.getRef(key);
   }
 }

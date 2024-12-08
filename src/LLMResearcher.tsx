@@ -12,28 +12,30 @@ interface ResearchOutputs {
   summary: string;
 }
 
-interface ResearchProps {
+interface ResearchProps<TRefs extends Record<string, any>> {
   title: string | RefType<string>;
   prompt: string | RefType<string>;
   outputs: OutputRefs<ResearchOutputs>;
 }
 
-export function LLMResearcher(props: ResearchProps): React.ReactElement | null {
+export function LLMResearcher<TRefs extends Record<string, any>>(
+  props: ResearchProps<TRefs>
+): React.ReactElement | null {
   const stepContext = useContext(StepContext);
 
   if (!stepContext) {
     throw new Error("LLMResearcher must be used within a Workflow.");
   }
 
-  const step: Step = {
-    async execute(context: ExecutionContext): Promise<void> {
+  const step: Step<TRefs> = {
+    async execute(context: ExecutionContext<TRefs>): Promise<void> {
       const resolveInput = <T,>(input: T | RefType<T>): T => {
         if (isRef(input)) {
-          const value = context.getRef<T>(input.__ref);
+          const value = context.getRef(input.__ref as keyof TRefs);
           if (value === undefined) {
             throw new Error(`Input ref '${input.__ref}' is undefined`);
           }
-          return value;
+          return value as T;
         }
         return input;
       };
@@ -42,14 +44,19 @@ export function LLMResearcher(props: ResearchProps): React.ReactElement | null {
       const prompt = resolveInput(props.prompt);
 
       // Simulate research with multiple outputs
-      const research = `Research based on title: ${title}, prompt: ${prompt}`;
-      const sources = ["source1.com", "source2.com"];
-      const summary = "Brief summary of findings";
+      const research =
+        `Research based on title: ${title}, prompt: ${prompt}` as TRefs[typeof props.outputs.research];
+      const sources = [
+        "source1.com",
+        "source2.com",
+      ] as TRefs[typeof props.outputs.sources];
+      const summary =
+        "Brief summary of findings" as TRefs[typeof props.outputs.summary];
 
       // Set multiple outputs
-      context.setRef(props.outputs.research, research);
-      context.setRef(props.outputs.sources, sources);
-      context.setRef(props.outputs.summary, summary);
+      context.setRef(props.outputs.research as keyof TRefs, research);
+      context.setRef(props.outputs.sources as keyof TRefs, sources);
+      context.setRef(props.outputs.summary as keyof TRefs, summary);
     },
   };
 

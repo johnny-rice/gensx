@@ -3,29 +3,29 @@ import { Step } from "./Step";
 import { ExecutionContext } from "./ExecutionContext";
 import { StepContext } from "./StepContext";
 
-interface UserInputProps {
-  id: string;
+interface UserInputProps<TRefs extends Record<string, any>> {
+  id: keyof TRefs;
   value: string;
+  prompt?: string;
 }
 
-export function UserInput({
+export function UserInput<TRefs extends Record<string, any>>({
   id,
   value,
-}: UserInputProps): React.ReactElement | null {
+}: UserInputProps<TRefs>): React.ReactElement | null {
   const stepContext = useContext(StepContext);
 
   if (!stepContext) {
     throw new Error("UserInput must be used within a Workflow.");
   }
 
-  const step: Step = {
-    async execute(context: ExecutionContext): Promise<void> {
-      context.setRef(id, value);
-      console.log(`UserInput: Set ref '${id}' to '${value}'`);
+  const step: Step<TRefs> = {
+    async execute(context: ExecutionContext<TRefs>): Promise<void> {
+      context.setRef(id, value as TRefs[typeof id]);
+      console.log(`UserInput: Set ref '${String(id)}' to '${value}'`);
     },
   };
 
   stepContext.steps.push(step);
-
   return null;
 }

@@ -1,8 +1,8 @@
 import React from "react";
-
 import { Workflow, WorkflowContext } from "./Workflow";
 import { BlogWritingWorkflow } from "./BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./TweetWritingWorkflow";
+import { getComponentRefs } from "./ref";
 
 async function main() {
   const title = "Programmatic Secrets with ESC";
@@ -16,10 +16,11 @@ async function main() {
     </Workflow>
   );
 
-  const wfContext = new WorkflowContext(blogAndTweetWorkflow);
+  type WorkflowRefs = typeof BlogWritingWorkflow.__refs &
+    typeof TweetWritingWorkflow.__refs;
+  const wfContext = new WorkflowContext<WorkflowRefs>(blogAndTweetWorkflow);
   await wfContext.execute();
 
-  // Access the results
   console.log("\nWorkflow Execution Completed.\n");
   console.log("Final Outputs:");
   console.log("Edited Blog Post:", wfContext.getRef("editedBlogPost"));
