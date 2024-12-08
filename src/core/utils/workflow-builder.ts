@@ -1,4 +1,4 @@
-import { createRefFactory, RefType } from "./ref";
+import { createRefFactory, RefType } from "../types/ref";
 
 type WorkflowComponent<TProps, TRefs extends Record<string, any>> = {
   (props: { [K in keyof TProps]: PropOrRef<TProps[K]> }): React.ReactElement;

@@ -1,8 +1,8 @@
 import React from "react";
-import { StepContext } from "./StepContext";
+import { StepContext } from "../context/StepContext";
 import { Step } from "./Step";
-import { ExecutionContext } from "./ExecutionContext";
-import { renderWorkflow } from "./renderWorkflow";
+import { ExecutionContext } from "../context/ExecutionContext";
+import { renderWorkflow } from "../utils/renderWorkflow";
 
 type ExtractRefs<T> = T extends React.ReactElement<any, infer C>
   ? C extends { __refs: any }

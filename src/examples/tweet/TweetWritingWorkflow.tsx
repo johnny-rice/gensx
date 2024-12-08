@@ -1,8 +1,8 @@
 import React from "react";
-import { LLMWriter } from "./LLMWriter";
-import { defineWorkflow } from "./workflow-builder";
-import { Outputs } from "./outputs";
-import { WriterOutputs } from "./LLMWriter";
+import { LLMWriter } from "../shared/components/LLMWriter";
+import { defineWorkflow } from "../../core/utils/workflow-builder";
+import { Outputs } from "../../core/types/outputs";
+import { WriterOutputs } from "../shared/components/LLMWriter";
 
 interface TweetWritingWorkflowProps {
   content: string;

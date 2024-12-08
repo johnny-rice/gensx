@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { Step } from "./Step";
-import { StepContext, StepContextValue } from "./StepContext";
-import { ExecutionContext } from "./ExecutionContext";
+import { Step } from "../components/Step";
+import { StepContext, StepContextValue } from "../context/StepContext";
+import { ExecutionContext } from "../context/ExecutionContext";
 
 export function renderWorkflow(
   element: React.ReactElement
@@ -12,13 +12,11 @@ export function renderWorkflow(
   const stepContextValue: StepContextValue = { steps };
 
   // Render the element tree to collect steps via the context
-  const rendered = ReactDOMServer.renderToStaticMarkup(
+  ReactDOMServer.renderToStaticMarkup(
     <StepContext.Provider value={stepContextValue}>
       {element.props.children}
     </StepContext.Provider>
   );
-
-  console.log("Rendered:", rendered);
 
   return steps;
 }

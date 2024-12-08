@@ -1,4 +1,4 @@
-import { createComponent } from "./createComponent";
+import { createComponent } from "./core/components/createComponent";
 
 interface ContextInputs {
   value: string;

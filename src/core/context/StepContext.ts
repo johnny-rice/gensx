@@ -1,5 +1,5 @@
 import React from "react";
-import { Step } from "./Step";
+import { Step } from "../components/Step";
 
 export interface StepContextValue<TRefs extends Record<string, any> = any> {
   steps: Step<TRefs>[];

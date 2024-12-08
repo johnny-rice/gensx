@@ -1,10 +1,10 @@
 import React from "react";
-import { LLMResearcher } from "./LLMResearcher";
-import { LLMWriter } from "./LLMWriter";
-import { LLMEditor } from "./LLMEditor";
-import { Outputs } from "./outputs";
-import { defineWorkflow } from "./workflow-builder";
-import { WriterOutputs } from "./LLMWriter";
+import { LLMResearcher } from "../shared/components/LLMResearcher";
+import { LLMWriter } from "../shared/components/LLMWriter";
+import { LLMEditor } from "../shared/components/LLMEditor";
+import { Outputs } from "../../core/types/outputs";
+import { defineWorkflow } from "../../core/utils/workflow-builder";
+import { WriterOutputs } from "../shared/components/LLMWriter";
 
 interface BlogWritingWorkflowProps {
   title: string;

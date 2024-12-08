@@ -1,10 +1,10 @@
 // src/createComponent.ts
 import React, { useContext } from "react";
 import { Step } from "./Step";
-import { ExecutionContext } from "./ExecutionContext";
-import { StepContext } from "./StepContext";
-import { RefType, isRef } from "./ref";
-import { OutputRefs } from "./outputs";
+import { ExecutionContext } from "../context/ExecutionContext";
+import { StepContext } from "../context/StepContext";
+import { RefType, isRef } from "../types/ref";
+import { OutputRefs } from "../types/outputs";
 
 type InputResolver<TInputs> = {
   [K in keyof TInputs]: TInputs[K] | RefType<TInputs[K]>;
