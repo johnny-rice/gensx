@@ -3,15 +3,7 @@ import { UserInput } from "./UserInput";
 import { LLMWriter } from "./LLMWriter";
 import { defineWorkflow } from "./workflow-builder";
 import { Outputs } from "./outputs";
-
-interface WriterOutputs {
-  content: string;
-  metadata: {
-    wordCount: number;
-    readingTime: number;
-    keywords: string[];
-  };
-}
+import { WriterOutputs } from "./LLMWriter";
 
 const refs = {
   // Input refs

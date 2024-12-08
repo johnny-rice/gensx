@@ -4,7 +4,7 @@ interface WriterInputs {
   content: string;
 }
 
-interface WriterOutputs {
+export interface WriterOutputs {
   content: string;
   metadata: {
     wordCount: number;

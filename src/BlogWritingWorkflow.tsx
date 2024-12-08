@@ -3,22 +3,13 @@ import { UserInput } from "./UserInput";
 import { LLMResearcher } from "./LLMResearcher";
 import { LLMWriter } from "./LLMWriter";
 import { LLMEditor } from "./LLMEditor";
-import { createRefFactory, RefType } from "./ref";
 import { Outputs } from "./outputs";
 import { defineWorkflow } from "./workflow-builder";
+import { WriterOutputs } from "./LLMWriter";
 
 interface BlogWritingWorkflowProps {
   title: string;
   prompt: string;
-}
-
-interface WriterOutputs {
-  content: string;
-  metadata: {
-    wordCount: number;
-    readingTime: number;
-    keywords: string[];
-  };
 }
 
 const refs = {

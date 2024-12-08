@@ -22,15 +22,3 @@ export function renderWorkflow(
 
   return steps;
 }
-
-export async function execute(
-  workflow: React.JSX.Element,
-  context?: ExecutionContext<Record<string, any>>
-): Promise<void> {
-  const steps = renderWorkflow(workflow);
-  let workflowContext = context ?? new ExecutionContext();
-  for (const step of steps) {
-    await step.execute(workflowContext);
-  }
-  return;
-}
