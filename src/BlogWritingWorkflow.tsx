@@ -49,35 +49,35 @@ export const BlogWritingWorkflow = defineWorkflow<
     <>
       <UserInput
         value={props.title}
-        outputs={Outputs({
+        outputs={Outputs<typeof refs>({
           value: "blogPostTitle",
         })}
       />
       <UserInput
         value={props.prompt}
-        outputs={Outputs({
+        outputs={Outputs<typeof refs>({
           value: "blogPostPrompt",
         })}
       />
       <LLMResearcher
         title={Ref("blogPostTitle")}
         prompt={Ref("blogPostPrompt")}
-        outputs={Outputs({
-          research: "blogResearchResul",
+        outputs={Outputs<typeof refs>({
+          research: "blogResearchResult",
           sources: "blogSources",
           summary: "blogSummary",
         })}
       />
       <LLMWriter
         content={Ref("blogResearchResult")}
-        outputs={Outputs({
+        outputs={Outputs<typeof refs>({
           content: "blogPost",
           metadata: "blogMetadata",
         })}
       />
       <LLMEditor
         content={Ref("blogPost")}
-        outputs={Outputs({
+        outputs={Outputs<typeof refs>({
           content: "editedBlogPost",
         })}
       />
