@@ -2,7 +2,7 @@ import React from "react";
 import { Workflow, WorkflowContext } from "./Workflow";
 import { BlogWritingWorkflow } from "./BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./TweetWritingWorkflow";
-
+import { Ref } from "./ref";
 async function main() {
   const title = "Programmatic Secrets with ESC";
   const prompt =
@@ -15,9 +15,7 @@ async function main() {
     </Workflow>
   );
 
-  type WorkflowRefs = typeof BlogWritingWorkflow.__refs &
-    typeof TweetWritingWorkflow.__refs;
-  const wfContext = new WorkflowContext<WorkflowRefs>(blogAndTweetWorkflow);
+  const wfContext = new WorkflowContext(blogAndTweetWorkflow);
   await wfContext.execute();
 
   console.log("\nWorkflow Execution Completed.\n");

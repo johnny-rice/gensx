@@ -4,6 +4,18 @@ import { Step } from "./Step";
 import { ExecutionContext } from "./ExecutionContext";
 import { renderWorkflow } from "./renderWorkflow";
 
+type ExtractRefs<T> = T extends React.ReactElement<any, infer C>
+  ? C extends { __refs: any }
+    ? C["__refs"]
+    : never
+  : never;
+
+type CombineChildRefs<T> = T extends React.ReactElement
+  ? ExtractRefs<T>
+  : T extends Array<infer U>
+  ? ExtractRefs<U>
+  : never;
+
 interface WorkflowProps {
   children: React.ReactNode;
 }
@@ -19,10 +31,12 @@ export function Workflow({ children }: WorkflowProps): React.ReactElement {
   );
 }
 
-export class WorkflowContext<TRefs extends Record<string, any>> {
-  private context: ExecutionContext<TRefs> = new ExecutionContext<TRefs>();
+export class WorkflowContext<T extends React.ReactElement> {
+  private context: ExecutionContext<CombineChildRefs<T>> = new ExecutionContext<
+    CombineChildRefs<T>
+  >();
 
-  constructor(private workflow: React.JSX.Element) {}
+  constructor(private workflow: T) {}
 
   async execute(): Promise<void> {
     const steps = renderWorkflow(this.workflow);
@@ -31,7 +45,9 @@ export class WorkflowContext<TRefs extends Record<string, any>> {
     }
   }
 
-  getRef<K extends keyof TRefs>(key: K): TRefs[K] | undefined {
+  getRef<K extends keyof CombineChildRefs<T>>(
+    key: K
+  ): CombineChildRefs<T>[K] | undefined {
     return this.context.getRef(key);
   }
 }
