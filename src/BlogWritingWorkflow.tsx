@@ -12,12 +12,6 @@ interface BlogWritingWorkflowProps {
   prompt: string;
 }
 
-interface ResearchOutputs {
-  research: string;
-  sources: string[];
-  summary: string;
-}
-
 interface WriterOutputs {
   content: string;
   metadata: {
@@ -48,25 +42,40 @@ export const BlogWritingWorkflow = defineWorkflow(
   (props: BlogWritingWorkflowProps) => {
     return (
       <>
-        <UserInput id="blogPostTitle" value={props.title} />
-        <UserInput id="blogPostPrompt" value={props.prompt} />
+        <UserInput
+          value={props.title}
+          outputs={Outputs({
+            value: "blogPostTitle",
+          })}
+        />
+        <UserInput
+          value={props.prompt}
+          outputs={Outputs({
+            value: "blogPostPrompt",
+          })}
+        />
         <LLMResearcher
           title={Ref("blogPostTitle")}
           prompt={Ref("blogPostPrompt")}
-          outputs={Outputs<ResearchOutputs>({
+          outputs={Outputs({
             research: "blogResearchResult",
             sources: "blogSources",
             summary: "blogSummary",
           })}
         />
         <LLMWriter
-          inputRef="blogResearchResult"
-          outputs={Outputs<WriterOutputs>({
+          content={Ref("blogResearchResult")}
+          outputs={Outputs({
             content: "blogPost",
             metadata: "blogMetadata",
           })}
         />
-        <LLMEditor inputRef="blogPost" outputRef="editedBlogPost" />
+        <LLMEditor
+          content={Ref("blogPost")}
+          outputs={Outputs({
+            content: "editedBlogPost",
+          })}
+        />
       </>
     );
   }

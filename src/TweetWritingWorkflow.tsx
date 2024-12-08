@@ -2,6 +2,8 @@ import React from "react";
 import { UserInput } from "./UserInput";
 import { LLMWriter } from "./LLMWriter";
 import { defineWorkflow } from "./workflow-builder";
+import { Ref } from "./ref";
+import { Outputs } from "./outputs";
 
 export const TweetWritingWorkflow = defineWorkflow(
   {
@@ -17,16 +19,18 @@ export const TweetWritingWorkflow = defineWorkflow(
     return (
       <>
         <UserInput
-          id="tweetInput"
           value=""
           prompt="Write a tweet based on the blog post."
+          outputs={Outputs({
+            value: "tweetInput",
+          })}
         />
         <LLMWriter
-          inputRef="tweetInput"
-          outputs={{
+          content={Ref("tweetInput")}
+          outputs={Outputs({
             content: "tweet",
             metadata: "tweetMetadata",
-          }}
+          })}
         />
       </>
     );
