@@ -5,9 +5,12 @@ import { defineWorkflow } from "./workflow-builder";
 import { Outputs } from "./outputs";
 import { WriterOutputs } from "./LLMWriter";
 
+interface TweetWritingWorkflowProps {
+  content: string;
+}
+
 const refs = {
   // Input refs
-  editedBlogPost: {} as string,
   tweetInput: {} as string,
 
   // Writer refs
@@ -15,16 +18,16 @@ const refs = {
   tweetMetadata: {} as WriterOutputs["metadata"],
 } as const;
 
-export const TweetWritingWorkflow = defineWorkflow(refs, (props) => {
+export const TweetWritingWorkflow = defineWorkflow<
+  TweetWritingWorkflowProps,
+  typeof refs
+>(refs, (props) => {
   const { Ref } = props;
 
   return (
     <>
       <UserInput
-        value=""
-        prompt={`Write a tweet to promote this blog post:\n\n${Ref(
-          "editedBlogPost"
-        )}`}
+        value={props.content}
         outputs={Outputs<typeof refs>({
           value: "tweetInput",
         })}

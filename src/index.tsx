@@ -3,6 +3,7 @@ import { Workflow, WorkflowContext } from "./Workflow";
 import { BlogWritingWorkflow } from "./BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./TweetWritingWorkflow";
 import { Ref } from "./ref";
+
 async function main() {
   const title = "Programmatic Secrets with ESC";
   const prompt =
@@ -11,7 +12,7 @@ async function main() {
   const blogAndTweetWorkflow = (
     <Workflow>
       <BlogWritingWorkflow title={title} prompt={prompt} />
-      <TweetWritingWorkflow />
+      <TweetWritingWorkflow content={Ref("editedBlogPost")} />
     </Workflow>
   );
 
