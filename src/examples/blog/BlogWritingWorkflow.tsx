@@ -2,64 +2,50 @@ import React from "react";
 import { LLMResearcher } from "../shared/components/LLMResearcher";
 import { LLMWriter } from "../shared/components/LLMWriter";
 import { LLMEditor } from "../shared/components/LLMEditor";
-import { Outputs } from "../../core/types/outputs";
+import { useWorkflowOutput } from "../../core/hooks/useWorkflowOutput";
 import { defineWorkflow } from "../../core/utils/workflow-builder";
-import { WriterOutputs } from "../shared/components/LLMWriter";
 
 interface BlogWritingWorkflowProps {
   title: string;
   prompt: string;
+  setOutput: (content: string) => void;
 }
 
-const refs = {
-  // Input refs
-  blogPostTitle: {} as string,
-  blogPostPrompt: {} as string,
+export const BlogWritingWorkflow = defineWorkflow<BlogWritingWorkflowProps>(
+  ({ title, prompt, setOutput }) => {
+    // Research outputs
+    const [getResearchResult, setResearchResult] = useWorkflowOutput("");
+    const [getSources, setSources] = useWorkflowOutput<string[]>([]);
+    const [getSummary, setSummary] = useWorkflowOutput("");
 
-  // Research refs
-  blogResearchResult: {} as string,
-  blogSources: {} as string[],
-  blogSummary: {} as string,
+    // Writer outputs
+    const [getBlogPost, setBlogPost] = useWorkflowOutput("");
+    const [getMetadata, setMetadata] = useWorkflowOutput<{
+      wordCount: number;
+      readingTime: number;
+      keywords: string[];
+    }>({
+      wordCount: 0,
+      readingTime: 0,
+      keywords: [],
+    });
 
-  // Writer refs
-  blogPost: {} as string,
-  blogMetadata: {} as WriterOutputs["metadata"],
-
-  // Editor refs
-  editedBlogPost: {} as string,
-} as const;
-
-export const BlogWritingWorkflow = defineWorkflow<
-  BlogWritingWorkflowProps,
-  // TODO we gotta get rid of the need to define the refs here
-  typeof refs
->(refs, (props) => {
-  const { Ref } = props;
-
-  return (
-    <>
-      <LLMResearcher
-        title={props.title}
-        prompt={props.prompt}
-        outputs={Outputs<typeof refs>({
-          research: "blogResearchResult",
-          sources: "blogSources",
-          summary: "blogSummary",
-        })}
-      />
-      <LLMWriter
-        content={Ref("blogResearchResult")}
-        outputs={Outputs<typeof refs>({
-          content: "blogPost",
-          metadata: "blogMetadata",
-        })}
-      />
-      <LLMEditor
-        content={Ref("blogPost")}
-        outputs={Outputs<typeof refs>({
-          content: "editedBlogPost",
-        })}
-      />
-    </>
-  );
-});
+    return (
+      <>
+        <LLMResearcher
+          title={title}
+          prompt={prompt}
+          setResearch={setResearchResult}
+          setSources={setSources}
+          setSummary={setSummary}
+        />
+        <LLMWriter
+          content={getResearchResult()}
+          setContent={setBlogPost}
+          setMetadata={setMetadata}
+        />
+        <LLMEditor content={getBlogPost()} setContent={setOutput} />
+      </>
+    );
+  }
+);

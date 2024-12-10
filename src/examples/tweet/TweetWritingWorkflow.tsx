@@ -1,34 +1,34 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { LLMWriter } from "../shared/components/LLMWriter";
-import { defineWorkflow } from "../../core/utils/workflow-builder";
-import { Outputs } from "../../core/types/outputs";
-import { WriterOutputs } from "../shared/components/LLMWriter";
+import {
+  useWorkflowOutput,
+  outputDependencies,
+} from "../../core/hooks/useWorkflowOutput";
 
 interface TweetWritingWorkflowProps {
   content: string;
+  setOutput: (content: string) => void;
 }
 
-const refs = {
-  // Writer refs
-  tweet: {} as string,
-  tweetMetadata: {} as WriterOutputs["metadata"],
-} as const;
-
-export const TweetWritingWorkflow = defineWorkflow<
-  TweetWritingWorkflowProps,
-  typeof refs
->(refs, (props) => {
-  const { Ref } = props;
+export function TweetWritingWorkflow({
+  content,
+  setOutput,
+}: TweetWritingWorkflowProps) {
+  const [getTweetMetadata, setTweetMetadata] = useWorkflowOutput<{
+    wordCount: number;
+    readingTime: number;
+    keywords: string[];
+  }>({
+    wordCount: 0,
+    readingTime: 0,
+    keywords: [],
+  });
 
   return (
-    <>
-      <LLMWriter
-        content={props.content}
-        outputs={Outputs<typeof refs>({
-          content: "tweet",
-          metadata: "tweetMetadata",
-        })}
-      />
-    </>
+    <LLMWriter
+      content={content}
+      setContent={setOutput}
+      setMetadata={setTweetMetadata}
+    />
   );
-});
+}

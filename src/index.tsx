@@ -1,28 +1,41 @@
 import React from "react";
-import { Workflow, WorkflowContext } from "./core/components/Workflow";
+import { Workflow } from "./core/components/Workflow";
 import { BlogWritingWorkflow } from "./examples/blog/BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./examples/tweet/TweetWritingWorkflow";
-import { Ref } from "./core/types/ref";
+import { WorkflowContext } from "./core/components/Workflow";
+import { createWorkflowOutput } from "./core/hooks/useWorkflowOutput";
+import {
+  workflowOutputs,
+  outputDependencies,
+} from "./core/hooks/useWorkflowOutput";
 
 async function main() {
   const title = "Programmatic Secrets with ESC";
-  const prompt =
-    "Write an article that talks about managing and consuming secrets programmatically using the ESC typescript SDK.";
+  const prompt = "Write an article...";
 
-  const blogAndTweetWorkflow = (
+  // Create shared outputs between workflows
+  const [getBlogPost, setBlogPost] = createWorkflowOutput("");
+  const [getTweet, setTweet] = createWorkflowOutput("");
+
+  const workflow = (
     <Workflow>
-      <BlogWritingWorkflow title={title} prompt={prompt} />
-      <TweetWritingWorkflow content={Ref("editedBlogPost")} />
+      <BlogWritingWorkflow
+        title={title}
+        prompt={prompt}
+        setOutput={setBlogPost}
+      />
+      <TweetWritingWorkflow content={getBlogPost()} setOutput={setTweet} />
     </Workflow>
   );
 
-  const wfContext = new WorkflowContext(blogAndTweetWorkflow);
-  await wfContext.execute();
+  // Execute the workflow
+  const context = new WorkflowContext(workflow);
+  await context.execute();
 
-  console.log("\nWorkflow Execution Completed.\n");
-  console.log("Final Outputs:");
-  console.log("Edited Blog Post:", wfContext.getRef("editedBlogPost"));
-  console.log("Tweet:", wfContext.getRef("tweet"));
+  console.log("Blog Post:", getBlogPost());
+  console.log("Tweet:", getTweet());
+  console.log("workflowOutputs:", workflowOutputs);
+  console.log("outputDependencies:", outputDependencies);
 }
 
 main().catch((error) => {

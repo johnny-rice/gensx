@@ -1,53 +1,55 @@
 import React from "react";
-import { StepContext } from "../context/StepContext";
-import { Step } from "./Step";
+import ReactDOM from "react-dom/server";
 import { ExecutionContext } from "../context/ExecutionContext";
+import { Step } from "./Step";
+import { StepContext } from "../context/StepContext";
 import { renderWorkflow } from "../utils/renderWorkflow";
 
-type ExtractRefs<T> = T extends React.ReactElement<any, infer C>
-  ? C extends { __refs: any }
-    ? C["__refs"]
-    : never
-  : never;
-
-type CombineChildRefs<T> = T extends React.ReactElement
-  ? ExtractRefs<T>
-  : T extends Array<infer U>
-  ? ExtractRefs<U>
-  : never;
-
-interface WorkflowProps {
-  children: React.ReactNode;
-}
-
-export function Workflow({ children }: WorkflowProps): React.ReactElement {
-  const steps: Step<Record<string, any>>[] = [];
-  const stepContextValue = { steps };
-
+export function Workflow({ children }: { children: React.ReactNode }) {
+  const steps: Step<any>[] = [];
   return (
-    <StepContext.Provider value={stepContextValue}>
-      {children}
-    </StepContext.Provider>
+    <StepContext.Provider value={{ steps }}>{children}</StepContext.Provider>
   );
 }
 
-export class WorkflowContext<T extends React.ReactElement> {
-  private context: ExecutionContext<CombineChildRefs<T>> = new ExecutionContext<
-    CombineChildRefs<T>
-  >();
+export class WorkflowContext {
+  static current: WorkflowContext | null = null;
+  private executionQueue: Set<string> = new Set();
+  private steps: Step<any>[] = [];
 
-  constructor(private workflow: T) {}
-
-  async execute(): Promise<void> {
-    const steps = renderWorkflow(this.workflow);
-    for (const step of steps) {
-      await step.execute(this.context);
-    }
+  constructor(workflow: React.ReactElement) {
+    // Use renderWorkflow utility to collect steps
+    this.steps = renderWorkflow(workflow);
+    console.log("Collected steps:", this.steps.length);
   }
 
-  getRef<K extends keyof CombineChildRefs<T>>(
-    key: K
-  ): CombineChildRefs<T>[K] | undefined {
-    return this.context.getRef(key);
+  notifyUpdate(componentId: string) {
+    this.executionQueue.add(componentId);
+  }
+
+  async execute() {
+    WorkflowContext.current = this;
+
+    // Execute steps in order
+    for (let i = 0; i < this.steps.length; i++) {
+      const step = this.steps[i];
+      const componentId = i.toString();
+
+      // Execute the step
+      await step.execute(new ExecutionContext());
+
+      // Process execution queue if any dependencies were updated
+      while (this.executionQueue.size > 0) {
+        const queuedIds = Array.from(this.executionQueue);
+        this.executionQueue.clear();
+
+        for (const id of queuedIds) {
+          if (parseInt(id) > i) continue; // Skip future steps
+          await this.steps[parseInt(id)].execute(new ExecutionContext());
+        }
+      }
+    }
+
+    WorkflowContext.current = null;
   }
 }
