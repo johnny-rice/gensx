@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { WorkflowContext } from "../context/workflow-context";
+import { useRef } from "react";
 
 export const workflowOutputs = new Map<
   string,
@@ -16,10 +15,9 @@ function generateStableId() {
 }
 
 export function useWorkflowOutput<T>(
-  initialValue: T
+  _initialValue: T // Kept for API compatibility but unused
 ): [() => Promise<T>, (value: T) => void] {
-  const workflowContext = useContext(WorkflowContext);
-  const outputId = generateStableId();
+  const outputId = useRef(generateStableId()).current;
 
   if (!workflowOutputs.has(outputId)) {
     let resolvePromise: (value: T) => void;

@@ -1,6 +1,4 @@
 import React, { useContext, useRef } from "react";
-import { Step } from "./Step";
-import { ExecutionContext } from "../context/ExecutionContext";
 import { StepContext } from "../context/StepContext";
 
 // Helper function to deeply resolve promises
@@ -22,7 +20,6 @@ type ComponentExecutor<TInputs> = (inputs: TInputs) => Promise<void>;
 export function createComponent<TInputs extends Record<string, any>>(
   executor: ComponentExecutor<TInputs>
 ) {
-  // Component accepts either T or Promise<T> for each prop
   return function (props: PromiseWrapped<TInputs>): React.ReactElement | null {
     const stepContext = useContext(StepContext);
     if (!stepContext) {
@@ -33,13 +30,8 @@ export function createComponent<TInputs extends Record<string, any>>(
     const stepAdded = useRef(false);
 
     if (!stepAdded.current) {
-      console.log("Adding step to context");
-      const step: Step<Record<string, any>> = {
-        async execute(
-          context: ExecutionContext<Record<string, any>>
-        ): Promise<void> {
-          console.log("Executing step");
-
+      const step = {
+        async execute(): Promise<void> {
           // Create an object to hold the resolved values
           const resolvedProps = {} as TInputs;
 
