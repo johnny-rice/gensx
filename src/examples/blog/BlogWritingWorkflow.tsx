@@ -14,13 +14,13 @@ interface BlogWritingWorkflowProps {
 export const BlogWritingWorkflow = defineWorkflow<BlogWritingWorkflowProps>(
   ({ title, prompt, setOutput }) => {
     // Research phase
-    const [getResearchNotes, setResearchNotes] = useWorkflowOutput<string>("");
-    const [getSources, setSources] = useWorkflowOutput<string[]>([]);
-    const [getOutline, setOutline] = useWorkflowOutput<string>("");
+    const [researchNotes, setResearchNotes] = useWorkflowOutput<string>("");
+    const [sources, setSources] = useWorkflowOutput<string[]>([]);
+    const [outline, setOutline] = useWorkflowOutput<string>("");
 
     // Writing phase
-    const [getDraft, setDraft] = useWorkflowOutput<string>("");
-    const [getMetadata, setMetadata] = useWorkflowOutput<{
+    const [draft, setDraft] = useWorkflowOutput<string>("");
+    const [metadata, setMetadata] = useWorkflowOutput<{
       wordCount: number;
       readingTime: number;
       keywords: string[];
@@ -39,13 +39,13 @@ export const BlogWritingWorkflow = defineWorkflow<BlogWritingWorkflowProps>(
 
         {/* Writing Phase */}
         <LLMWriter
-          content={getResearchNotes()}
+          content={researchNotes}
           setContent={setDraft}
           setMetadata={setMetadata}
         />
 
         {/* Editing Phase */}
-        <LLMEditor content={getDraft()} setContent={setOutput} />
+        <LLMEditor content={draft} setContent={setOutput} />
       </>
     );
   }

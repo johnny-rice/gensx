@@ -16,7 +16,7 @@ function generateStableId() {
 
 export function useWorkflowOutput<T>(
   _initialValue: T // Kept for API compatibility but unused
-): [() => Promise<T>, (value: T) => void] {
+): [Promise<T>, (value: T) => void] {
   const outputId = useRef(generateStableId()).current;
 
   if (!workflowOutputs.has(outputId)) {
@@ -32,13 +32,9 @@ export function useWorkflowOutput<T>(
     });
   }
 
-  const getValue = () => {
-    const output = workflowOutputs.get(outputId)!;
-    return output.promise;
-  };
+  const output = workflowOutputs.get(outputId)!;
 
   const setValue = (value: T) => {
-    const output = workflowOutputs.get(outputId)!;
     if (output.hasResolved) {
       throw new Error("Cannot set value multiple times");
     }
@@ -46,13 +42,13 @@ export function useWorkflowOutput<T>(
     output.hasResolved = true;
   };
 
-  return [getValue, setValue];
+  return [output.promise, setValue];
 }
 
 // Non-hook version for use outside React components
 export function createWorkflowOutput<T>(
-  initialValue: T
-): [() => Promise<T>, (value: T) => void] {
+  _initialValue: T
+): [Promise<T>, (value: T) => void] {
   const outputId = generateStableId();
 
   if (!workflowOutputs.has(outputId)) {
@@ -68,13 +64,9 @@ export function createWorkflowOutput<T>(
     });
   }
 
-  const getValue = () => {
-    const output = workflowOutputs.get(outputId)!;
-    return output.promise;
-  };
+  const output = workflowOutputs.get(outputId)!;
 
   const setValue = (value: T) => {
-    const output = workflowOutputs.get(outputId)!;
     if (output.hasResolved) {
       throw new Error("Cannot set value multiple times");
     }
@@ -82,5 +74,5 @@ export function createWorkflowOutput<T>(
     output.hasResolved = true;
   };
 
-  return [getValue, setValue];
+  return [output.promise, setValue];
 }

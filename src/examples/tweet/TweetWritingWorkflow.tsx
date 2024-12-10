@@ -12,11 +12,11 @@ interface TweetWritingWorkflowProps {
 export const TweetWritingWorkflow = defineWorkflow<TweetWritingWorkflowProps>(
   ({ content, setOutput }) => {
     // Research phase
-    const [getOutline, setOutline] = useWorkflowOutput<string>("");
+    const [outline, setOutline] = useWorkflowOutput<string>("");
 
     // Writing phase
-    const [getDraft, setDraft] = useWorkflowOutput<string>("");
-    const [getMetadata, setMetadata] = useWorkflowOutput<{
+    const [draft, setDraft] = useWorkflowOutput<string>("");
+    const [metadata, setMetadata] = useWorkflowOutput<{
       wordCount: number;
       readingTime: number;
       keywords: string[];
@@ -32,7 +32,7 @@ export const TweetWritingWorkflow = defineWorkflow<TweetWritingWorkflowProps>(
         />
 
         {/* Editing Phase */}
-        <LLMEditor content={getDraft()} setContent={setOutput} />
+        <LLMEditor content={draft} setContent={setOutput} />
       </>
     );
   }

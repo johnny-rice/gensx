@@ -11,8 +11,8 @@ async function main() {
   const prompt = "Write an article...";
 
   // Create shared outputs between workflows
-  const [getBlogPost, setBlogPost] = createWorkflowOutput("");
-  const [getTweet, setTweet] = createWorkflowOutput("");
+  const [blogPost, setBlogPost] = createWorkflowOutput("");
+  const [tweet, setTweet] = createWorkflowOutput("");
 
   const workflow = (
     <Workflow>
@@ -21,7 +21,7 @@ async function main() {
         prompt={prompt}
         setOutput={setBlogPost}
       />
-      <TweetWritingWorkflow content={getBlogPost()} setOutput={setTweet} />
+      <TweetWritingWorkflow content={blogPost} setOutput={setTweet} />
     </Workflow>
   );
 
@@ -29,8 +29,8 @@ async function main() {
   const context = new WorkflowContext(workflow);
   await context.execute();
 
-  console.log("Blog Post:", await getBlogPost());
-  console.log("Tweet:", await getTweet());
+  console.log("Blog Post:", await blogPost);
+  console.log("Tweet:", await tweet);
   console.log("workflowOutputs:", workflowOutputs);
 }
 
