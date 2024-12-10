@@ -15,6 +15,7 @@ export const BlogWritingWorkflow = defineWorkflow<BlogWritingWorkflowProps>(
   ({ title, prompt, setOutput }) => {
     // Research phase
     const [getResearchNotes, setResearchNotes] = useWorkflowOutput<string>("");
+    const [getSources, setSources] = useWorkflowOutput<string[]>([]);
     const [getOutline, setOutline] = useWorkflowOutput<string>("");
 
     // Writing phase
@@ -32,9 +33,7 @@ export const BlogWritingWorkflow = defineWorkflow<BlogWritingWorkflowProps>(
           title={title}
           prompt={prompt}
           setResearch={setResearchNotes}
-          setSources={(sources) => {
-            /* handle sources if needed */
-          }}
+          setSources={setSources}
           setSummary={setOutline}
         />
 
