@@ -12,19 +12,18 @@ async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
   return resolved;
 }
 
-// Type that represents the resolved version of the inputs
-type ResolvedInputs<TInputs> = {
-  [K in keyof TInputs]: Awaited<TInputs[K]>;
+// Type that allows either T or Promise<T> for each input
+type PromiseWrapped<T> = {
+  [K in keyof T]: T[K] | Promise<T[K]>;
 };
 
-type ComponentExecutor<TInputs> = (
-  inputs: ResolvedInputs<TInputs>
-) => Promise<void>;
+type ComponentExecutor<TInputs> = (inputs: TInputs) => Promise<void>;
 
 export function createComponent<TInputs extends Record<string, any>>(
   executor: ComponentExecutor<TInputs>
 ) {
-  return function (props: TInputs): React.ReactElement | null {
+  // Component accepts either T or Promise<T> for each prop
+  return function (props: PromiseWrapped<TInputs>): React.ReactElement | null {
     const stepContext = useContext(StepContext);
     if (!stepContext) {
       throw new Error("Component must be used within a Workflow.");
@@ -42,7 +41,7 @@ export function createComponent<TInputs extends Record<string, any>>(
           console.log("Executing step");
 
           // Create an object to hold the resolved values
-          const resolvedProps = {} as ResolvedInputs<TInputs>;
+          const resolvedProps = {} as TInputs;
 
           // Wait for all promises to resolve before proceeding
           await Promise.all(

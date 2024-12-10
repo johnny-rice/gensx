@@ -1,7 +1,7 @@
 import { createComponent } from "../../../core/components/createComponent";
 
 interface WriterProps {
-  content: string | Promise<string>;
+  content: string;
   setContent: (value: string) => void;
   setMetadata: (value: {
     wordCount: number;
@@ -11,7 +11,6 @@ interface WriterProps {
 }
 
 export const LLMWriter = createComponent<WriterProps>(async (props) => {
-  // props.content is guaranteed to be string by the framework
   const processedContent = `Written content based on: ${props.content}`;
   const metadata = {
     wordCount: processedContent.split(" ").length,
