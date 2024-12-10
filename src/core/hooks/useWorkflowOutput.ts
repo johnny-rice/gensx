@@ -1,9 +1,14 @@
 import { useContext } from "react";
 import { WorkflowContext } from "../context/workflow-context";
 
-export const workflowOutputs = new Map<string, any>();
-export const outputDependencies = new Map<string, Set<string>>();
-export const dependencyGraph = new Map<string, Set<string>>();
+export const workflowOutputs = new Map<
+  string,
+  {
+    promise: Promise<any>;
+    resolve: (value: any) => void;
+    hasResolved: boolean;
+  }
+>();
 
 let counter = 0;
 function generateStableId() {
@@ -12,34 +17,35 @@ function generateStableId() {
 
 export function useWorkflowOutput<T>(
   initialValue: T
-): [() => T, (value: T) => void] {
+): [() => Promise<T>, (value: T) => void] {
   const workflowContext = useContext(WorkflowContext);
   const outputId = generateStableId();
-  const componentId = workflowContext.current?.getCurrentComponentId() || "";
 
   if (!workflowOutputs.has(outputId)) {
-    workflowOutputs.set(outputId, initialValue);
+    let resolvePromise: (value: T) => void;
+    const promise = new Promise<T>((resolve) => {
+      resolvePromise = resolve;
+    });
+
+    workflowOutputs.set(outputId, {
+      promise,
+      resolve: resolvePromise!,
+      hasResolved: false,
+    });
   }
 
   const getValue = () => {
-    // Record dependency
-    if (componentId) {
-      if (!dependencyGraph.has(componentId)) {
-        dependencyGraph.set(componentId, new Set());
-      }
-      dependencyGraph.get(componentId)?.add(outputId);
-    }
-    return workflowOutputs.get(outputId);
+    const output = workflowOutputs.get(outputId)!;
+    return output.promise;
   };
 
-  const setValue = (newValue: T) => {
-    workflowOutputs.set(outputId, newValue);
-    // Notify dependent components
-    for (const [compId, dependencies] of dependencyGraph.entries()) {
-      if (dependencies.has(outputId)) {
-        workflowContext.current?.notifyUpdate(compId);
-      }
+  const setValue = (value: T) => {
+    const output = workflowOutputs.get(outputId)!;
+    if (output.hasResolved) {
+      throw new Error("Cannot set value multiple times");
     }
+    output.resolve(value);
+    output.hasResolved = true;
   };
 
   return [getValue, setValue];
@@ -48,17 +54,34 @@ export function useWorkflowOutput<T>(
 // Non-hook version for use outside React components
 export function createWorkflowOutput<T>(
   initialValue: T
-): [() => T, (value: T) => void] {
+): [() => Promise<T>, (value: T) => void] {
   const outputId = generateStableId();
 
   if (!workflowOutputs.has(outputId)) {
-    workflowOutputs.set(outputId, initialValue);
+    let resolvePromise: (value: T) => void;
+    const promise = new Promise<T>((resolve) => {
+      resolvePromise = resolve;
+    });
+
+    workflowOutputs.set(outputId, {
+      promise,
+      resolve: resolvePromise!,
+      hasResolved: false,
+    });
   }
 
-  const getValue = () => workflowOutputs.get(outputId);
+  const getValue = () => {
+    const output = workflowOutputs.get(outputId)!;
+    return output.promise;
+  };
 
-  const setValue = (newValue: T) => {
-    workflowOutputs.set(outputId, newValue);
+  const setValue = (value: T) => {
+    const output = workflowOutputs.get(outputId)!;
+    if (output.hasResolved) {
+      throw new Error("Cannot set value multiple times");
+    }
+    output.resolve(value);
+    output.hasResolved = true;
   };
 
   return [getValue, setValue];

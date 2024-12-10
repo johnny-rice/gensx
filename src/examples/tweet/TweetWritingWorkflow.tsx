@@ -1,34 +1,39 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { LLMWriter } from "../shared/components/LLMWriter";
-import {
-  useWorkflowOutput,
-  outputDependencies,
-} from "../../core/hooks/useWorkflowOutput";
+import { LLMEditor } from "../shared/components/LLMEditor";
+import { useWorkflowOutput } from "../../core/hooks/useWorkflowOutput";
+import { defineWorkflow } from "../../core/utils/workflow-builder";
 
 interface TweetWritingWorkflowProps {
-  content: string;
+  content: string | Promise<string>;
   setOutput: (content: string) => void;
 }
 
-export function TweetWritingWorkflow({
-  content,
-  setOutput,
-}: TweetWritingWorkflowProps) {
-  const [getTweetMetadata, setTweetMetadata] = useWorkflowOutput<{
-    wordCount: number;
-    readingTime: number;
-    keywords: string[];
-  }>({
-    wordCount: 0,
-    readingTime: 0,
-    keywords: [],
-  });
+export const TweetWritingWorkflow = defineWorkflow<TweetWritingWorkflowProps>(
+  ({ content, setOutput }) => {
+    // Research phase
+    const [getOutline, setOutline] = useWorkflowOutput<string>("");
 
-  return (
-    <LLMWriter
-      content={content}
-      setContent={setOutput}
-      setMetadata={setTweetMetadata}
-    />
-  );
-}
+    // Writing phase
+    const [getDraft, setDraft] = useWorkflowOutput<string>("");
+    const [getMetadata, setMetadata] = useWorkflowOutput<{
+      wordCount: number;
+      readingTime: number;
+      keywords: string[];
+    }>({ wordCount: 0, readingTime: 0, keywords: [] });
+
+    return (
+      <>
+        {/* Writing Phase */}
+        <LLMWriter
+          content={content}
+          setContent={setDraft}
+          setMetadata={setMetadata}
+        />
+
+        {/* Editing Phase */}
+        <LLMEditor content={getDraft()} setContent={setOutput} />
+      </>
+    );
+  }
+);

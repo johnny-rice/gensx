@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { LLMResearcher } from "../shared/components/LLMResearcher";
 import { LLMWriter } from "../shared/components/LLMWriter";
 import { LLMEditor } from "../shared/components/LLMEditor";
@@ -13,38 +13,40 @@ interface BlogWritingWorkflowProps {
 
 export const BlogWritingWorkflow = defineWorkflow<BlogWritingWorkflowProps>(
   ({ title, prompt, setOutput }) => {
-    // Research outputs
-    const [getResearchResult, setResearchResult] = useWorkflowOutput("");
-    const [getSources, setSources] = useWorkflowOutput<string[]>([]);
-    const [getSummary, setSummary] = useWorkflowOutput("");
+    // Research phase
+    const [getResearchNotes, setResearchNotes] = useWorkflowOutput<string>("");
+    const [getOutline, setOutline] = useWorkflowOutput<string>("");
 
-    // Writer outputs
-    const [getBlogPost, setBlogPost] = useWorkflowOutput("");
+    // Writing phase
+    const [getDraft, setDraft] = useWorkflowOutput<string>("");
     const [getMetadata, setMetadata] = useWorkflowOutput<{
       wordCount: number;
       readingTime: number;
       keywords: string[];
-    }>({
-      wordCount: 0,
-      readingTime: 0,
-      keywords: [],
-    });
+    }>({ wordCount: 0, readingTime: 0, keywords: [] });
 
     return (
       <>
+        {/* Research Phase */}
         <LLMResearcher
           title={title}
           prompt={prompt}
-          setResearch={setResearchResult}
-          setSources={setSources}
-          setSummary={setSummary}
+          setResearch={setResearchNotes}
+          setSources={(sources) => {
+            /* handle sources if needed */
+          }}
+          setSummary={setOutline}
         />
+
+        {/* Writing Phase */}
         <LLMWriter
-          content={getResearchResult()}
-          setContent={setBlogPost}
+          content={getResearchNotes()}
+          setContent={setDraft}
           setMetadata={setMetadata}
         />
-        <LLMEditor content={getBlogPost()} setContent={setOutput} />
+
+        {/* Editing Phase */}
+        <LLMEditor content={getDraft()} setContent={setOutput} />
       </>
     );
   }

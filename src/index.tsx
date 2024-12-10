@@ -4,10 +4,7 @@ import { BlogWritingWorkflow } from "./examples/blog/BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./examples/tweet/TweetWritingWorkflow";
 import { WorkflowContext } from "./core/components/Workflow";
 import { createWorkflowOutput } from "./core/hooks/useWorkflowOutput";
-import {
-  workflowOutputs,
-  outputDependencies,
-} from "./core/hooks/useWorkflowOutput";
+import { workflowOutputs } from "./core/hooks/useWorkflowOutput";
 
 async function main() {
   const title = "Programmatic Secrets with ESC";
@@ -32,10 +29,9 @@ async function main() {
   const context = new WorkflowContext(workflow);
   await context.execute();
 
-  console.log("Blog Post:", getBlogPost());
-  console.log("Tweet:", getTweet());
+  console.log("Blog Post:", await getBlogPost());
+  console.log("Tweet:", await getTweet());
   console.log("workflowOutputs:", workflowOutputs);
-  console.log("outputDependencies:", outputDependencies);
 }
 
 main().catch((error) => {

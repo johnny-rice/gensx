@@ -3,7 +3,23 @@ import { Step } from "./Step";
 import { ExecutionContext } from "../context/ExecutionContext";
 import { StepContext } from "../context/StepContext";
 
-type ComponentExecutor<TInputs> = (inputs: TInputs) => Promise<void>;
+// Helper function to deeply resolve promises
+async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
+  let resolved = value;
+  while (resolved instanceof Promise) {
+    resolved = await resolved;
+  }
+  return resolved;
+}
+
+// Type that represents the resolved version of the inputs
+type ResolvedInputs<TInputs> = {
+  [K in keyof TInputs]: Awaited<TInputs[K]>;
+};
+
+type ComponentExecutor<TInputs> = (
+  inputs: ResolvedInputs<TInputs>
+) => Promise<void>;
 
 export function createComponent<TInputs extends Record<string, any>>(
   executor: ComponentExecutor<TInputs>
@@ -20,7 +36,19 @@ export function createComponent<TInputs extends Record<string, any>>(
         context: ExecutionContext<Record<string, any>>
       ): Promise<void> {
         console.log("Executing step");
-        await executor(props);
+
+        // Create an object to hold the resolved values
+        const resolvedProps = {} as ResolvedInputs<TInputs>;
+
+        // Wait for all promises to resolve before proceeding
+        await Promise.all(
+          Object.entries(props).map(async ([key, value]) => {
+            resolvedProps[key as keyof TInputs] = await resolveValue(value);
+          })
+        );
+
+        // Now call executor with fully resolved props
+        await executor(resolvedProps);
       },
     };
 
