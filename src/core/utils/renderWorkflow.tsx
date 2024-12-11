@@ -4,10 +4,8 @@ import { Step } from "../components/Step";
 import { StepContext, StepContextValue } from "../context/StepContext";
 import { ExecutionContext } from "../context/ExecutionContext";
 
-export function renderWorkflow(
-  element: React.ReactElement
-): Step<Record<string, any>>[] {
-  const steps: Step<Record<string, any>>[] = [];
+export function renderWorkflow(element: React.ReactElement): Step[] {
+  const steps: Step[] = [];
 
   const stepContextValue: StepContextValue = { steps };
 

@@ -6,7 +6,7 @@ import { StepContext } from "../context/StepContext";
 import { renderWorkflow } from "../utils/renderWorkflow";
 
 export function Workflow({ children }: { children: React.ReactNode }) {
-  const steps: Step<any>[] = [];
+  const steps: Step[] = [];
   return (
     <StepContext.Provider value={{ steps }}>{children}</StepContext.Provider>
   );
@@ -15,7 +15,7 @@ export function Workflow({ children }: { children: React.ReactNode }) {
 export class WorkflowContext {
   static current: WorkflowContext | null = null;
   private executionQueue: Set<string> = new Set();
-  private steps: Step<any>[] = [];
+  private steps: Step[] = [];
 
   constructor(workflow: React.ReactElement) {
     // Use renderWorkflow utility to collect steps
