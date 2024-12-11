@@ -43,7 +43,6 @@ export const BlogWritingWorkflow = defineWorkflow<BlogWritingWorkflowProps>(
           setContent={setDraft}
           setMetadata={setMetadata}
         />
-
         {/* Editing Phase */}
         <LLMEditor content={draft} setContent={setOutput} />
       </>

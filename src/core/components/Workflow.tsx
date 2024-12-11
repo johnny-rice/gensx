@@ -30,26 +30,28 @@ export class WorkflowContext {
   async execute() {
     WorkflowContext.current = this;
 
-    // Execute steps in order
-    for (let i = 0; i < this.steps.length; i++) {
-      const step = this.steps[i];
-      const componentId = i.toString();
+    try {
+      // Execute all steps in parallel
+      await Promise.all(
+        this.steps.map((step, index) => {
+          const componentId = index.toString();
+          return step.execute(new ExecutionContext());
+        })
+      );
 
-      // Execute the step
-      await step.execute(new ExecutionContext());
-
-      // Process execution queue if any dependencies were updated
+      // Process any remaining updates in the queue
       while (this.executionQueue.size > 0) {
         const queuedIds = Array.from(this.executionQueue);
         this.executionQueue.clear();
 
-        for (const id of queuedIds) {
-          if (parseInt(id) > i) continue; // Skip future steps
-          await this.steps[parseInt(id)].execute(new ExecutionContext());
-        }
+        await Promise.all(
+          queuedIds.map((id) =>
+            this.steps[parseInt(id)].execute(new ExecutionContext())
+          )
+        );
       }
+    } finally {
+      WorkflowContext.current = null;
     }
-
-    WorkflowContext.current = null;
   }
 }

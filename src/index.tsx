@@ -16,12 +16,12 @@ async function main() {
 
   const workflow = (
     <Workflow>
+      <TweetWritingWorkflow content={blogPost} setOutput={setTweet} />
       <BlogWritingWorkflow
         title={title}
         prompt={prompt}
         setOutput={setBlogPost}
       />
-      <TweetWritingWorkflow content={blogPost} setOutput={setTweet} />
     </Workflow>
   );
 
