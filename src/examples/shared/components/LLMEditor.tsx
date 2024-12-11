@@ -1,17 +1,13 @@
 import { createComponent } from "../../../core/components/createComponent";
 
-interface EditorInputs {
+interface EditorProps {
   content: string;
+  setContent: (value: string) => void;
 }
 
-interface EditorOutputs {
-  content: string;
-}
-
-export const LLMEditor = createComponent<EditorInputs, EditorOutputs, any>(
-  async ({ content }) => {
-    return {
-      content: `Edited content: ${content}`,
-    };
-  }
-);
+export const LLMEditor = createComponent<EditorProps>(async (props) => {
+  console.log("running llm editor");
+  console.log("content:", props.content);
+  const editedContent = `Edited: ${props.content}`;
+  props.setContent(editedContent);
+});

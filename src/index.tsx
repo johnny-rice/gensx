@@ -1,28 +1,37 @@
 import React from "react";
-import { Workflow, WorkflowContext } from "./core/components/Workflow";
+import { Workflow } from "./core/components/Workflow";
 import { BlogWritingWorkflow } from "./examples/blog/BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./examples/tweet/TweetWritingWorkflow";
-import { Ref } from "./core/types/ref";
+import { WorkflowContext } from "./core/components/Workflow";
+import { createWorkflowOutput } from "./core/hooks/useWorkflowOutput";
+import { workflowOutputs } from "./core/hooks/useWorkflowOutput";
 
 async function main() {
   const title = "Programmatic Secrets with ESC";
-  const prompt =
-    "Write an article that talks about managing and consuming secrets programmatically using the ESC typescript SDK.";
+  const prompt = "Write an article...";
 
-  const blogAndTweetWorkflow = (
+  // Create shared outputs between workflows
+  const [blogPost, setBlogPost] = createWorkflowOutput("");
+  const [tweet, setTweet] = createWorkflowOutput("");
+
+  const workflow = (
     <Workflow>
-      <BlogWritingWorkflow title={title} prompt={prompt} />
-      <TweetWritingWorkflow content={Ref("editedBlogPost")} />
+      <TweetWritingWorkflow content={blogPost} setOutput={setTweet} />
+      <BlogWritingWorkflow
+        title={title}
+        prompt={prompt}
+        setOutput={setBlogPost}
+      />
     </Workflow>
   );
 
-  const wfContext = new WorkflowContext(blogAndTweetWorkflow);
-  await wfContext.execute();
+  // Execute the workflow
+  const context = new WorkflowContext(workflow);
+  await context.execute();
 
-  console.log("\nWorkflow Execution Completed.\n");
-  console.log("Final Outputs:");
-  console.log("Edited Blog Post:", wfContext.getRef("editedBlogPost"));
-  console.log("Tweet:", wfContext.getRef("tweet"));
+  console.log("Blog Post:", await blogPost);
+  console.log("Tweet:", await tweet);
+  console.log("workflowOutputs:", workflowOutputs);
 }
 
 main().catch((error) => {

@@ -1,60 +1,52 @@
-// src/createComponent.ts
-import React, { useContext } from "react";
-import { Step } from "./Step";
-import { ExecutionContext } from "../context/ExecutionContext";
+import React, { useContext, useRef } from "react";
 import { StepContext } from "../context/StepContext";
-import { RefType, isRef } from "../types/ref";
-import { OutputRefs } from "../types/outputs";
 
-type InputResolver<TInputs> = {
-  [K in keyof TInputs]: TInputs[K] | RefType<TInputs[K]>;
+// Helper function to deeply resolve promises
+async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
+  return await value;
+}
+
+// Type that allows either T or Promise<T> for each input
+type PromiseWrapped<T> = {
+  [K in keyof T]: T[K] | Promise<T[K]>;
 };
 
-type OutputMapping<TOutputs, TRefs> = {
-  [K in keyof TOutputs]: keyof TRefs;
-};
+type ComponentExecutor<TInputs> = (inputs: TInputs) => Promise<void>;
 
-type ComponentExecutor<TInputs, TOutputs> = (
-  inputs: TInputs
-) => Promise<TOutputs>;
-
-export function createComponent<
-  TInputs extends Record<string, any>,
-  TOutputs extends Record<string, any>,
-  TRefs extends Record<string, any>
->(executor: ComponentExecutor<TInputs, TOutputs>) {
-  return function (
-    props: InputResolver<TInputs> & { outputs: OutputRefs<TOutputs> }
-  ): React.ReactElement | null {
+export function createComponent<TInputs extends Record<string, any>>(
+  executor: ComponentExecutor<TInputs>
+) {
+  return function (props: PromiseWrapped<TInputs>): React.ReactElement | null {
     const stepContext = useContext(StepContext);
     if (!stepContext) {
       throw new Error("Component must be used within a Workflow.");
     }
 
-    const step: Step<TRefs> = {
-      async execute(context: ExecutionContext<TRefs>): Promise<void> {
-        // Execute component logic
-        const resolvedInputs = Object.entries(props).reduce(
-          (acc, [key, value]) => ({
-            ...acc,
-            [key]: isRef(value)
-              ? context.getRef(value.__ref as keyof TRefs)
-              : value,
-          }),
-          {}
-        ) as TInputs;
+    // Use ref to ensure we only add the step once
+    const stepAdded = useRef(false);
 
-        const outputs = await executor(resolvedInputs);
+    if (!stepAdded.current) {
+      const step = {
+        async execute(): Promise<void> {
+          // Create an object to hold the resolved values
+          const resolvedProps = {} as TInputs;
 
-        // Use provided outputs mapping or fall back to direct key mapping
-        Object.entries(outputs).forEach(([key, value]) => {
-          const refKey = props.outputs[key];
-          context.setRef(refKey as keyof TRefs, value);
-        });
-      },
-    };
+          // Wait for all promises to resolve before proceeding
+          await Promise.all(
+            Object.entries(props).map(async ([key, value]) => {
+              resolvedProps[key as keyof TInputs] = await resolveValue(value);
+            })
+          );
 
-    stepContext.steps.push(step);
+          // Now call executor with fully resolved props
+          await executor(resolvedProps);
+        },
+      };
+
+      stepContext.steps.push(step);
+      stepAdded.current = true;
+    }
+
     return null;
   };
 }

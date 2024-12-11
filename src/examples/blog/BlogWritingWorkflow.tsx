@@ -1,65 +1,51 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { LLMResearcher } from "../shared/components/LLMResearcher";
 import { LLMWriter } from "../shared/components/LLMWriter";
 import { LLMEditor } from "../shared/components/LLMEditor";
-import { Outputs } from "../../core/types/outputs";
+import { useWorkflowOutput } from "../../core/hooks/useWorkflowOutput";
 import { defineWorkflow } from "../../core/utils/workflow-builder";
-import { WriterOutputs } from "../shared/components/LLMWriter";
 
 interface BlogWritingWorkflowProps {
   title: string;
   prompt: string;
+  setOutput: (content: string) => void;
 }
 
-const refs = {
-  // Input refs
-  blogPostTitle: {} as string,
-  blogPostPrompt: {} as string,
+export const BlogWritingWorkflow = defineWorkflow<BlogWritingWorkflowProps>(
+  ({ title, prompt, setOutput }) => {
+    // Research phase
+    const [researchNotes, setResearchNotes] = useWorkflowOutput<string>("");
+    const [sources, setSources] = useWorkflowOutput<string[]>([]);
+    const [outline, setOutline] = useWorkflowOutput<string>("");
 
-  // Research refs
-  blogResearchResult: {} as string,
-  blogSources: {} as string[],
-  blogSummary: {} as string,
+    // Writing phase
+    const [draft, setDraft] = useWorkflowOutput<string>("");
+    const [metadata, setMetadata] = useWorkflowOutput<{
+      wordCount: number;
+      readingTime: number;
+      keywords: string[];
+    }>({ wordCount: 0, readingTime: 0, keywords: [] });
 
-  // Writer refs
-  blogPost: {} as string,
-  blogMetadata: {} as WriterOutputs["metadata"],
+    return (
+      <>
+        {/* Research Phase */}
+        <LLMResearcher
+          title={title}
+          prompt={prompt}
+          setResearch={setResearchNotes}
+          setSources={setSources}
+          setSummary={setOutline}
+        />
 
-  // Editor refs
-  editedBlogPost: {} as string,
-} as const;
-
-export const BlogWritingWorkflow = defineWorkflow<
-  BlogWritingWorkflowProps,
-  // TODO we gotta get rid of the need to define the refs here
-  typeof refs
->(refs, (props) => {
-  const { Ref } = props;
-
-  return (
-    <>
-      <LLMResearcher
-        title={props.title}
-        prompt={props.prompt}
-        outputs={Outputs<typeof refs>({
-          research: "blogResearchResult",
-          sources: "blogSources",
-          summary: "blogSummary",
-        })}
-      />
-      <LLMWriter
-        content={Ref("blogResearchResult")}
-        outputs={Outputs<typeof refs>({
-          content: "blogPost",
-          metadata: "blogMetadata",
-        })}
-      />
-      <LLMEditor
-        content={Ref("blogPost")}
-        outputs={Outputs<typeof refs>({
-          content: "editedBlogPost",
-        })}
-      />
-    </>
-  );
-});
+        {/* Writing Phase */}
+        <LLMWriter
+          content={researchNotes}
+          setContent={setDraft}
+          setMetadata={setMetadata}
+        />
+        {/* Editing Phase */}
+        <LLMEditor content={draft} setContent={setOutput} />
+      </>
+    );
+  }
+);

@@ -1,11 +1,11 @@
-export class ExecutionContext<TRefs extends Record<string, any>> {
-  private refs: Partial<TRefs> = {};
+export class ExecutionContext {
+  private refs: Record<string, any> = {};
 
-  setRef<K extends keyof TRefs>(key: K, value: TRefs[K]): void {
+  setRef(key: string, value: any): void {
     this.refs[key] = value;
   }
 
-  getRef<K extends keyof TRefs>(key: K): TRefs[K] | undefined {
+  getRef(key: string): any {
     return this.refs[key];
   }
 }

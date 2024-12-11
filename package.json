@@ -9,6 +9,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@turbopuffer/turbopuffer": "^0.5.11",
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.3.2",
     "openai": "^4.76.0",

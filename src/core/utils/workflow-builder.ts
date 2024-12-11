@@ -1,30 +1,61 @@
-import { createRefFactory, RefType } from "../types/ref";
+import { useEffect } from "react";
 
-type WorkflowComponent<TProps, TRefs extends Record<string, any>> = {
-  (props: { [K in keyof TProps]: PropOrRef<TProps[K]> }): React.ReactElement;
-  __refs: TRefs;
+type WorkflowComponent<TProps> = {
+  (props: TProps): React.ReactElement;
 };
 
-type PropOrRef<T> = T | RefType<T>;
-
-type WithRef<TProps, TRefs> = {
-  [K in keyof TProps]: PropOrRef<TProps[K]>;
-} & {
-  Ref: <K extends keyof TRefs>(refName: K) => RefType<TRefs[K]>;
-};
-
-export function defineWorkflow<
-  TProps extends object,
-  TRefs extends Record<string, any>
->(
-  refs: TRefs,
-  Component: (props: WithRef<TProps, TRefs>) => React.ReactElement
-): WorkflowComponent<TProps, TRefs> {
+export function defineWorkflow<TProps extends object>(
+  Component: (props: TProps) => React.ReactElement
+): WorkflowComponent<TProps> {
   const WorkflowComponent = ((props: TProps) => {
-    const Ref = createRefFactory<TRefs>();
-    return Component({ ...props, Ref });
-  }) as WorkflowComponent<TProps, TRefs>;
+    return Component(props);
+  }) as WorkflowComponent<TProps>;
 
-  WorkflowComponent.__refs = refs;
   return WorkflowComponent;
+}
+
+// Helper function to deeply resolve promises
+async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
+  let resolved = value;
+  while (resolved instanceof Promise) {
+    resolved = await resolved;
+  }
+  return resolved;
+}
+
+export function createComponent<TProps extends object>(
+  // Implementation receives resolved props - no promises
+  implementation: (props: {
+    [K in keyof TProps]: Awaited<TProps[K]>;
+  }) => void | Promise<void>
+) {
+  // Component can receive props that may contain promises
+  return (props: TProps) => {
+    useEffect(() => {
+      const executeComponent = async () => {
+        try {
+          // Create an object to hold the resolved values
+          const resolvedProps = {} as {
+            [K in keyof TProps]: Awaited<TProps[K]>;
+          };
+
+          // Wait for all promises to resolve before proceeding
+          await Promise.all(
+            Object.entries(props).map(async ([key, value]) => {
+              resolvedProps[key as keyof TProps] = await resolveValue(value);
+            })
+          );
+
+          // Now call implementation with fully resolved props
+          await implementation(resolvedProps);
+        } catch (error) {
+          console.error("Error in component:", error);
+        }
+      };
+
+      executeComponent();
+    }, [props]);
+
+    return null;
+  };
 }
