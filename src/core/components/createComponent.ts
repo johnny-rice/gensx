@@ -3,11 +3,7 @@ import { StepContext } from "../context/StepContext";
 
 // Helper function to deeply resolve promises
 async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
-  let resolved = value;
-  while (resolved instanceof Promise) {
-    resolved = await resolved;
-  }
-  return resolved;
+  return await value;
 }
 
 // Type that allows either T or Promise<T> for each input
