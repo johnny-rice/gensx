@@ -14,65 +14,47 @@ function generateStableId() {
   return `output_${counter++}`;
 }
 
-export function useWorkflowOutput<T>(
-  _initialValue: T // Kept for API compatibility but unused
-): [Promise<T>, (value: T) => void] {
-  const outputId = useRef(generateStableId()).current;
-
-  if (!workflowOutputs.has(outputId)) {
-    let resolvePromise: (value: T) => void;
-    const promise = new Promise<T>((resolve) => {
-      resolvePromise = resolve;
-    });
-
-    workflowOutputs.set(outputId, {
-      promise,
-      resolve: resolvePromise!,
-      hasResolved: false,
-    });
-  }
-
-  const output = workflowOutputs.get(outputId)!;
-
-  const setValue = (value: T) => {
-    if (output.hasResolved) {
-      throw new Error("Cannot set value multiple times");
-    }
-    output.resolve(value);
-    output.hasResolved = true;
-  };
-
-  return [output.promise, setValue];
-}
-
-// Non-hook version for use outside React components
 export function createWorkflowOutput<T>(
   _initialValue: T
 ): [Promise<T>, (value: T) => void] {
   const outputId = generateStableId();
+  console.log(`Creating workflow output ${outputId}`);
 
   if (!workflowOutputs.has(outputId)) {
     let resolvePromise: (value: T) => void;
-    const promise = new Promise<T>((resolve) => {
+    let rejectPromise: (error: any) => void;
+    const promise = new Promise<T>((resolve, reject) => {
       resolvePromise = resolve;
+      rejectPromise = reject;
     });
+
+    // Add a timeout to detect unresolved promises
+    const timeoutId = setTimeout(() => {
+      if (!workflowOutputs.get(outputId)?.hasResolved) {
+        console.error(`Output ${outputId} was not resolved within 5 seconds`);
+        rejectPromise(
+          new Error(`Output ${outputId} timed out waiting for resolution`)
+        );
+      }
+    }, 5000);
 
     workflowOutputs.set(outputId, {
       promise,
-      resolve: resolvePromise!,
+      resolve: (value: T) => {
+        console.log(`Setting value for output ${outputId}:`, value);
+        clearTimeout(timeoutId);
+        if (workflowOutputs.get(outputId)?.hasResolved) {
+          console.error(`Output ${outputId} has already been resolved!`);
+          throw new Error("Cannot set value multiple times");
+        }
+        resolvePromise(value);
+        workflowOutputs.get(outputId)!.hasResolved = true;
+        console.log(`Successfully resolved output ${outputId}`);
+      },
       hasResolved: false,
     });
   }
 
   const output = workflowOutputs.get(outputId)!;
-
-  const setValue = (value: T) => {
-    if (output.hasResolved) {
-      throw new Error("Cannot set value multiple times");
-    }
-    output.resolve(value);
-    output.hasResolved = true;
-  };
-
-  return [output.promise, setValue];
+  return [output.promise, output.resolve];
 }

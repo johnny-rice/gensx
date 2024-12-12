@@ -1,52 +1,75 @@
-import React, { useContext, useRef } from "react";
-import { StepContext } from "../context/StepContext";
+import React from "react";
+import { Step } from "./Step";
 
-// Helper function to deeply resolve promises
-async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
-  return await value;
-}
+type ComponentType<P> =
+  | React.ComponentType<P>
+  | ((props: P) => React.ReactElement | null);
 
-// Type that allows either T or Promise<T> for each input
-type PromiseWrapped<T> = {
-  [K in keyof T]: T[K] | Promise<T[K]>;
+type PromiseType<T> = T extends Promise<infer U> ? U : T;
+
+type WorkflowProps<P> = {
+  [K in keyof P]: P[K] | Promise<P[K]>;
 };
 
-type ComponentExecutor<TInputs> = (inputs: TInputs) => Promise<void>;
+export function createComponent<TProps extends Record<string, any>>(
+  implementation: (props: {
+    [K in keyof TProps]: TProps[K];
+  }) => void | Promise<void>
+): ComponentType<WorkflowProps<TProps>> {
+  const Component = (props: WorkflowProps<TProps>): React.ReactElement => {
+    const step: Step = {
+      async execute() {
+        try {
+          console.log("Resolving props:", Object.keys(props));
+          const resolvedProps = {} as TProps;
 
-export function createComponent<TInputs extends Record<string, any>>(
-  executor: ComponentExecutor<TInputs>
-) {
-  return function (props: PromiseWrapped<TInputs>): React.ReactElement | null {
-    const stepContext = useContext(StepContext);
-    if (!stepContext) {
-      throw new Error("Component must be used within a Workflow.");
-    }
+          // Resolve all props in sequence to maintain dependency order
+          for (const [key, value] of Object.entries(props)) {
+            try {
+              console.log(`Resolving prop ${key}...`);
+              resolvedProps[key as keyof TProps] = await resolveValue(value);
+              console.log(
+                `Resolved prop ${key}:`,
+                resolvedProps[key as keyof TProps]
+              );
+            } catch (error) {
+              console.error(`Error resolving prop ${key}:`, error);
+              throw error;
+            }
+          }
 
-    // Use ref to ensure we only add the step once
-    const stepAdded = useRef(false);
+          console.log("All props resolved, executing implementation");
+          await implementation(resolvedProps);
+          console.log("Implementation completed");
+        } catch (error) {
+          console.error("Error in step execution:", error);
+          throw error;
+        }
+      },
+    };
 
-    if (!stepAdded.current) {
-      const step = {
-        async execute(): Promise<void> {
-          // Create an object to hold the resolved values
-          const resolvedProps = {} as TInputs;
-
-          // Wait for all promises to resolve before proceeding
-          await Promise.all(
-            Object.entries(props).map(async ([key, value]) => {
-              resolvedProps[key as keyof TInputs] = await resolveValue(value);
-            })
-          );
-
-          // Now call executor with fully resolved props
-          await executor(resolvedProps);
-        },
-      };
-
-      stepContext.steps.push(step);
-      stepAdded.current = true;
-    }
-
-    return null;
+    return React.createElement("div", {
+      "data-workflow-step": true,
+      step,
+      style: { display: "none" },
+    });
   };
+
+  Component.displayName = implementation.name + "Component";
+  return Component;
+}
+
+async function resolveValue<T>(value: T | Promise<T>): Promise<PromiseType<T>> {
+  try {
+    if (value instanceof Promise) {
+      console.log("Resolving promise value...");
+      const resolved = await value;
+      console.log("Promise resolved to:", resolved);
+      return resolved as PromiseType<T>;
+    }
+    return value as PromiseType<T>;
+  } catch (error) {
+    console.error("Error resolving value:", error);
+    throw error;
+  }
 }

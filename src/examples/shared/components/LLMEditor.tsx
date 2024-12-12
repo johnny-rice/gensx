@@ -6,8 +6,9 @@ interface EditorProps {
 }
 
 export const LLMEditor = createComponent<EditorProps>(async (props) => {
-  console.log("running llm editor");
-  console.log("content:", props.content);
+  console.log("component: LLMEditor starting with content:", props.content);
   const editedContent = `Edited: ${props.content}`;
+  console.log("component: LLMEditor setting content:", editedContent);
   props.setContent(editedContent);
+  console.log("component: LLMEditor completed");
 });

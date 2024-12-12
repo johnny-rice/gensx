@@ -1,39 +1,59 @@
 import React from "react";
 import { LLMWriter } from "../shared/components/LLMWriter";
 import { LLMEditor } from "../shared/components/LLMEditor";
-import { useWorkflowOutput } from "../../core/hooks/useWorkflowOutput";
+import { createWorkflowOutput } from "../../core/hooks/useWorkflowOutput";
 import { defineWorkflow } from "../../core/utils/workflow-builder";
 
-interface TweetWritingWorkflowProps {
+interface TweetWritingWorkflowInputs {
   content: string | Promise<string>;
-  setOutput: (content: string) => void;
+  setOutput: (value: string) => void;
 }
 
-export const TweetWritingWorkflow = defineWorkflow<TweetWritingWorkflowProps>(
-  ({ content, setOutput }) => {
-    // Research phase
-    const [outline, setOutline] = useWorkflowOutput<string>("");
+interface TweetWritingWorkflowOutputs {
+  output: string;
+}
 
-    // Writing phase
-    const [draft, setDraft] = useWorkflowOutput<string>("");
-    const [metadata, setMetadata] = useWorkflowOutput<{
-      wordCount: number;
-      readingTime: number;
-      keywords: string[];
-    }>({ wordCount: 0, readingTime: 0, keywords: [] });
-
-    return (
-      <>
-        {/* Writing Phase */}
-        <LLMWriter
-          content={content}
-          setContent={setDraft}
-          setMetadata={setMetadata}
-        />
-
-        {/* Editing Phase */}
-        <LLMEditor content={draft} setContent={setOutput} />
-      </>
-    );
+export const TweetWritingWorkflow = defineWorkflow<
+  TweetWritingWorkflowInputs,
+  TweetWritingWorkflowOutputs
+>((props) => {
+  console.log(
+    "TweetWritingWorkflow: Starting with content type:",
+    typeof props.content
+  );
+  if (props.content instanceof Promise) {
+    console.log("TweetWritingWorkflow: Content is a promise");
+  } else {
+    console.log("TweetWritingWorkflow: Content value:", props.content);
   }
-);
+
+  // Writing phase
+  const [draft, setDraft] = createWorkflowOutput<string>("");
+  const [metadata, setMetadata] = createWorkflowOutput<{
+    wordCount: number;
+    readingTime: number;
+    keywords: string[];
+  }>({ wordCount: 0, readingTime: 0, keywords: [] });
+
+  console.log("TweetWritingWorkflow: Created outputs");
+
+  const element = (
+    <>
+      <LLMWriter
+        content={props.content}
+        setContent={setDraft}
+        setMetadata={setMetadata}
+      />
+      <LLMEditor content={draft} setContent={props.setOutput} />
+    </>
+  );
+
+  console.log("TweetWritingWorkflow: Created element with steps");
+
+  return {
+    element,
+    outputs: {
+      output: { value: draft, setValue: props.setOutput },
+    },
+  };
+});

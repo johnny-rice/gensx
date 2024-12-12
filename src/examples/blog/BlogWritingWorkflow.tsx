@@ -1,51 +1,73 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { LLMResearcher } from "../shared/components/LLMResearcher";
 import { LLMWriter } from "../shared/components/LLMWriter";
 import { LLMEditor } from "../shared/components/LLMEditor";
-import { useWorkflowOutput } from "../../core/hooks/useWorkflowOutput";
+import { createWorkflowOutput } from "../../core/hooks/useWorkflowOutput";
 import { defineWorkflow } from "../../core/utils/workflow-builder";
 
-interface BlogWritingWorkflowProps {
+interface BlogWritingWorkflowInputs {
   title: string;
   prompt: string;
-  setOutput: (content: string) => void;
+  setOutput?: (value: string) => void;
 }
 
-export const BlogWritingWorkflow = defineWorkflow<BlogWritingWorkflowProps>(
-  ({ title, prompt, setOutput }) => {
-    // Research phase
-    const [researchNotes, setResearchNotes] = useWorkflowOutput<string>("");
-    const [sources, setSources] = useWorkflowOutput<string[]>([]);
-    const [outline, setOutline] = useWorkflowOutput<string>("");
+interface BlogWritingWorkflowOutputs {
+  output: string;
+}
 
-    // Writing phase
-    const [draft, setDraft] = useWorkflowOutput<string>("");
-    const [metadata, setMetadata] = useWorkflowOutput<{
-      wordCount: number;
-      readingTime: number;
-      keywords: string[];
-    }>({ wordCount: 0, readingTime: 0, keywords: [] });
+export const BlogWritingWorkflow = defineWorkflow<
+  BlogWritingWorkflowInputs,
+  BlogWritingWorkflowOutputs
+>(({ title, prompt, setOutput }) => {
+  console.log("BlogWritingWorkflow: Starting with title:", title);
 
-    return (
-      <>
-        {/* Research Phase */}
-        <LLMResearcher
-          title={title}
-          prompt={prompt}
-          setResearch={setResearchNotes}
-          setSources={setSources}
-          setSummary={setOutline}
-        />
+  // Research phase
+  const [researchNotes, setResearchNotes] = createWorkflowOutput<string>("");
+  const [sources, setSources] = createWorkflowOutput<string[]>([]);
+  const [outline, setOutline] = createWorkflowOutput<string>("");
 
-        {/* Writing Phase */}
-        <LLMWriter
-          content={researchNotes}
-          setContent={setDraft}
-          setMetadata={setMetadata}
-        />
-        {/* Editing Phase */}
-        <LLMEditor content={draft} setContent={setOutput} />
-      </>
-    );
-  }
-);
+  // Writing phase
+  const [draft, setDraft] = createWorkflowOutput<string>("");
+  const [metadata, setMetadata] = createWorkflowOutput<{
+    wordCount: number;
+    readingTime: number;
+    keywords: string[];
+  }>({ wordCount: 0, readingTime: 0, keywords: [] });
+
+  // Create our own output if one wasn't provided
+  const [internalOutput, setInternalOutput] = setOutput
+    ? [undefined, setOutput] // Use the provided setOutput
+    : createWorkflowOutput<string>(""); // Create our own if not provided
+
+  console.log("BlogWritingWorkflow: Created all outputs");
+
+  const element = (
+    <>
+      <LLMResearcher
+        title={title}
+        prompt={prompt}
+        setResearch={setResearchNotes}
+        setSources={setSources}
+        setSummary={setOutline}
+      />
+      <LLMWriter
+        content={researchNotes}
+        setContent={setDraft}
+        setMetadata={setMetadata}
+      />
+      <LLMEditor content={draft} setContent={setOutput || setInternalOutput} />
+    </>
+  );
+
+  console.log("BlogWritingWorkflow: Created element with steps");
+
+  return {
+    element,
+    outputs: {
+      output: {
+        value: internalOutput || draft, // If we're using external output, use draft as the value -- TODO this isn't right.
+        setValue: setOutput || setInternalOutput,
+      },
+    },
+  };
+});
