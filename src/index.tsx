@@ -6,7 +6,6 @@ import { WorkflowContext } from "./core/components/Workflow";
 import { createWorkflowOutput } from "./core/hooks/useWorkflowOutput";
 
 async function runParallelWorkflow() {
-  console.log("Starting parallel workflow");
   const title = "Programmatic Secrets with ESC";
   const prompt = "Write an article...";
 
@@ -24,9 +23,7 @@ async function runParallelWorkflow() {
     </Workflow>
   );
 
-  console.log("Creating workflow context");
   const context = new WorkflowContext(workflow);
-  console.log("Executing workflow");
   await context.execute();
 
   console.log("\n=== Parallel Workflow Results ===");
@@ -35,7 +32,6 @@ async function runParallelWorkflow() {
 }
 
 async function runNestedWorkflow() {
-  console.log("Starting nested workflow");
   const title = "Programmatic Secrets with ESC";
   const prompt = "Write an article...";
 
@@ -56,9 +52,7 @@ async function runNestedWorkflow() {
     </Workflow>
   );
 
-  console.log("Creating workflow context");
   const context = new WorkflowContext(workflow);
-  console.log("Executing workflow");
   await context.execute();
 }
 
