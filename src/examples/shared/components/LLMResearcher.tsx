@@ -45,9 +45,9 @@ export const LLMResearcher = createWorkflow<ResearcherProps, ResearcherOutputs>(
     return {
       element: null,
       outputs: {
-        research: { value: research, setValue: setResearch },
-        sources: { value: sources, setValue: setSources },
-        summary: { value: summary, setValue: setSummary },
+        research: research,
+        sources: sources,
+        summary: summary,
       },
     };
   }

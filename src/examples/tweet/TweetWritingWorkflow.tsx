@@ -39,7 +39,7 @@ export const TweetWritingWorkflow = createWorkflow<
   return {
     element,
     outputs: {
-      output: { value: draft, setValue: props.setOutput },
+      output: draft,
     },
   };
 });

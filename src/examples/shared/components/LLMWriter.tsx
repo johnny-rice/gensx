@@ -49,8 +49,8 @@ export const LLMWriter = createWorkflow<WriterProps, WriterOutputs>((props) => {
   return {
     element: null,
     outputs: {
-      content: { value: content, setValue: setContent },
-      metadata: { value: metadata, setValue: setMetadata },
+      content: content,
+      metadata: metadata,
     },
   };
 });

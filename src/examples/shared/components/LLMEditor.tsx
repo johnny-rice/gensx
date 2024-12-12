@@ -24,7 +24,7 @@ export const LLMEditor = createWorkflow<EditorProps, EditorOutputs>((props) => {
   return {
     element: null,
     outputs: {
-      content: { value: content, setValue: setContent },
+      content: content,
     },
   };
 });

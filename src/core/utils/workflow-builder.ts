@@ -3,15 +3,10 @@ import { Step } from "../components/Step";
 import { renderWorkflow } from "./renderWorkflow";
 import { ExecutionContext } from "../context/ExecutionContext";
 
-interface WorkflowOutput<T> {
-  value: Promise<T>;
-  setValue: (value: T) => void;
-}
-
-export interface WorkflowResult<TOutputs extends Record<string, any>> {
+interface WorkflowResult<TOutputs extends Record<string, any>> {
   element: React.ReactElement | null;
   outputs?: {
-    [K in keyof TOutputs]: WorkflowOutput<TOutputs[K]>;
+    [K in keyof TOutputs]: Promise<TOutputs[K]>;
   };
 }
 
@@ -80,21 +75,13 @@ export function createWorkflow<
 
         // If we have a setOutput prop, forward the output
         if (setOutput && result.outputs?.output) {
-          await result.outputs.output.value;
-          setOutput(await result.outputs.output.value);
+          const outputValue = await result.outputs.output;
+          setOutput(outputValue);
         }
 
         // If we have children and outputs, process them after element chain
         if (children && result.outputs) {
-          const outputPromises = Object.entries(result.outputs).reduce(
-            (acc, [key, value]) => ({
-              ...acc,
-              [key]: value.value,
-            }),
-            {} as WorkflowOutputPromises<TOutputs>
-          );
-
-          const childElement = children(outputPromises);
+          const childElement = children(result.outputs);
           if (childElement) {
             const childSteps = renderWorkflow(
               childElement as React.ReactElement
@@ -127,7 +114,7 @@ export function createWorkflow<
 
     // If we have a setOutput prop, forward the output
     if (setOutput && result.outputs?.output) {
-      result.outputs.output.value.then(setOutput);
+      result.outputs.output.then(setOutput);
     }
 
     // Process the element chain first to ensure proper execution order
@@ -135,14 +122,7 @@ export function createWorkflow<
 
     // Then process children if they exist
     if (children && result.outputs) {
-      const outputPromises = Object.entries(result.outputs).reduce(
-        (acc, [key, value]) => ({
-          ...acc,
-          [key]: value.value,
-        }),
-        {} as WorkflowOutputPromises<TOutputs>
-      );
-
+      const outputPromises = result.outputs;
       const childElement = children(outputPromises);
       if (childElement) {
         element = React.createElement(

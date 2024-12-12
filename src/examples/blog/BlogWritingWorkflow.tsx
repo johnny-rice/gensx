@@ -61,10 +61,7 @@ export const BlogWritingWorkflow = createWorkflow<
   return {
     element,
     outputs: {
-      output: {
-        value: finalOutput,
-        setValue: setFinalOutput,
-      },
+      output: finalOutput,
     },
   };
 });
