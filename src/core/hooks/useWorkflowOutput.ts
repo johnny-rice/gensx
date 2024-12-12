@@ -18,7 +18,6 @@ export function createWorkflowOutput<T>(
   _initialValue: T
 ): [Promise<T>, (value: T) => void] {
   const outputId = generateStableId();
-  console.log("Creating workflow output with id:", outputId);
 
   if (!workflowOutputs.has(outputId)) {
     let resolvePromise: (value: T) => void;
@@ -41,7 +40,6 @@ export function createWorkflowOutput<T>(
     workflowOutputs.set(outputId, {
       promise,
       resolve: (value: T) => {
-        console.log(`Resolving output ${outputId} with value:`, value);
         clearTimeout(timeoutId);
         if (workflowOutputs.get(outputId)?.hasResolved) {
           throw new Error("Cannot set value multiple times");
