@@ -72,7 +72,7 @@ async function main() {
     await runParallelWorkflow();
     console.log("Parallel workflow completed successfully");
     console.log("\nFinal workflowOutputs:", workflowOutputs);
-    //await runNestedWorkflow();
+    await runNestedWorkflow();
     console.log("Nested workflow completed successfully");
     console.log("\nFinal workflowOutputs:", workflowOutputs);
   } catch (error) {

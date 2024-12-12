@@ -35,9 +35,12 @@ export const BlogWritingWorkflow = defineWorkflow<
   }>({ wordCount: 0, readingTime: 0, keywords: [] });
 
   // Create our own output if one wasn't provided
-  const [internalOutput, setInternalOutput] = setOutput
-    ? [undefined, setOutput] // Use the provided setOutput
-    : createWorkflowOutput<string>(""); // Create our own if not provided
+  const [internalOutput, setInternalOutput] = createWorkflowOutput<string>("");
+
+  // If setOutput is provided, forward our internal output to it
+  if (setOutput) {
+    internalOutput.then(setOutput);
+  }
 
   console.log("BlogWritingWorkflow: Created all outputs");
 
@@ -55,7 +58,7 @@ export const BlogWritingWorkflow = defineWorkflow<
         setContent={setDraft}
         setMetadata={setMetadata}
       />
-      <LLMEditor content={draft} setContent={setOutput || setInternalOutput} />
+      <LLMEditor content={draft} setContent={setInternalOutput} />
     </>
   );
 
@@ -65,8 +68,8 @@ export const BlogWritingWorkflow = defineWorkflow<
     element,
     outputs: {
       output: {
-        value: internalOutput || draft, // If we're using external output, use draft as the value -- TODO this isn't right.
-        setValue: setOutput || setInternalOutput,
+        value: internalOutput,
+        setValue: setInternalOutput,
       },
     },
   };
