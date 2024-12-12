@@ -18,7 +18,6 @@ export function createWorkflowOutput<T>(
   _initialValue: T
 ): [Promise<T>, (value: T) => void] {
   const outputId = generateStableId();
-  console.log(`Creating workflow output ${outputId}`);
 
   if (!workflowOutputs.has(outputId)) {
     let resolvePromise: (value: T) => void;
@@ -31,7 +30,6 @@ export function createWorkflowOutput<T>(
     // Add a timeout to detect unresolved promises
     const timeoutId = setTimeout(() => {
       if (!workflowOutputs.get(outputId)?.hasResolved) {
-        console.error(`Output ${outputId} was not resolved within 5 seconds`);
         rejectPromise(
           new Error(`Output ${outputId} timed out waiting for resolution`)
         );
@@ -41,15 +39,12 @@ export function createWorkflowOutput<T>(
     workflowOutputs.set(outputId, {
       promise,
       resolve: (value: T) => {
-        console.log(`Setting value for output ${outputId}:`, value);
         clearTimeout(timeoutId);
         if (workflowOutputs.get(outputId)?.hasResolved) {
-          console.error(`Output ${outputId} has already been resolved!`);
           throw new Error("Cannot set value multiple times");
         }
         resolvePromise(value);
         workflowOutputs.get(outputId)!.hasResolved = true;
-        console.log(`Successfully resolved output ${outputId}`);
       },
       hasResolved: false,
     });

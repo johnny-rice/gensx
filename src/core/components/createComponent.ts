@@ -20,29 +20,19 @@ export function createComponent<TProps extends Record<string, any>>(
     const step: Step = {
       async execute() {
         try {
-          console.log("Resolving props:", Object.keys(props));
           const resolvedProps = {} as TProps;
 
           // Resolve all props in sequence to maintain dependency order
           for (const [key, value] of Object.entries(props)) {
             try {
-              console.log(`Resolving prop ${key}...`);
               resolvedProps[key as keyof TProps] = await resolveValue(value);
-              console.log(
-                `Resolved prop ${key}:`,
-                resolvedProps[key as keyof TProps]
-              );
             } catch (error) {
-              console.error(`Error resolving prop ${key}:`, error);
               throw error;
             }
           }
 
-          console.log("All props resolved, executing implementation");
           await implementation(resolvedProps);
-          console.log("Implementation completed");
         } catch (error) {
-          console.error("Error in step execution:", error);
           throw error;
         }
       },
@@ -59,17 +49,6 @@ export function createComponent<TProps extends Record<string, any>>(
   return Component;
 }
 
-async function resolveValue<T>(value: T | Promise<T>): Promise<PromiseType<T>> {
-  try {
-    if (value instanceof Promise) {
-      console.log("Resolving promise value...");
-      const resolved = await value;
-      console.log("Promise resolved to:", resolved);
-      return resolved as PromiseType<T>;
-    }
-    return value as PromiseType<T>;
-  } catch (error) {
-    console.error("Error resolving value:", error);
-    throw error;
-  }
+async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
+  return await value;
 }

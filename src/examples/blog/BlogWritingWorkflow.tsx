@@ -19,8 +19,6 @@ export const BlogWritingWorkflow = defineWorkflow<
   BlogWritingWorkflowInputs,
   BlogWritingWorkflowOutputs
 >(({ title, prompt, setOutput }) => {
-  console.log("BlogWritingWorkflow: Starting with title:", title);
-
   // Research phase
   const [researchNotes, setResearchNotes] = createWorkflowOutput<string>("");
   const [sources, setSources] = createWorkflowOutput<string[]>([]);
@@ -42,8 +40,6 @@ export const BlogWritingWorkflow = defineWorkflow<
     internalOutput.then(setOutput);
   }
 
-  console.log("BlogWritingWorkflow: Created all outputs");
-
   const element = (
     <>
       <LLMResearcher
@@ -61,8 +57,6 @@ export const BlogWritingWorkflow = defineWorkflow<
       <LLMEditor content={draft} setContent={setInternalOutput} />
     </>
   );
-
-  console.log("BlogWritingWorkflow: Created element with steps");
 
   return {
     element,

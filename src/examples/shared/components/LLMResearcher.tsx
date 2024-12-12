@@ -10,7 +10,6 @@ interface ResearcherProps {
 
 export const LLMResearcher = createComponent<ResearcherProps>(
   async ({ title, prompt, setResearch, setSources, setSummary }) => {
-    console.log("component: LLMResearcher running");
     const result = {
       research: `Research based on title: ${title}, prompt: ${prompt}`,
       sources: ["source1.com", "source2.com"],

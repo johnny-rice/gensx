@@ -7,11 +7,6 @@ type FunctionComponent = (props: any) => React.ReactElement | null;
 const processedWorkflows = new Set<string>();
 
 export function renderWorkflow(element: React.ReactElement): Step[] {
-  console.log(
-    "Rendering workflow:",
-    typeof element.type === "function" ? element.type.name : element.type
-  );
-
   // Clear the processed workflows set at the start of each render
   processedWorkflows.clear();
   const steps: Step[] = [];

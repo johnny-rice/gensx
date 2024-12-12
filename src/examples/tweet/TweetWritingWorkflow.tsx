@@ -17,16 +17,6 @@ export const TweetWritingWorkflow = defineWorkflow<
   TweetWritingWorkflowInputs,
   TweetWritingWorkflowOutputs
 >((props) => {
-  console.log(
-    "TweetWritingWorkflow: Starting with content type:",
-    typeof props.content
-  );
-  if (props.content instanceof Promise) {
-    console.log("TweetWritingWorkflow: Content is a promise");
-  } else {
-    console.log("TweetWritingWorkflow: Content value:", props.content);
-  }
-
   // Writing phase
   const [draft, setDraft] = createWorkflowOutput<string>("");
   const [metadata, setMetadata] = createWorkflowOutput<{
@@ -34,8 +24,6 @@ export const TweetWritingWorkflow = defineWorkflow<
     readingTime: number;
     keywords: string[];
   }>({ wordCount: 0, readingTime: 0, keywords: [] });
-
-  console.log("TweetWritingWorkflow: Created outputs");
 
   const element = (
     <>
@@ -47,8 +35,6 @@ export const TweetWritingWorkflow = defineWorkflow<
       <LLMEditor content={draft} setContent={props.setOutput} />
     </>
   );
-
-  console.log("TweetWritingWorkflow: Created element with steps");
 
   return {
     element,
