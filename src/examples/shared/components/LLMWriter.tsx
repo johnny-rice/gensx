@@ -1,17 +1,10 @@
 import { createWorkflow } from "../../../core/utils/workflow-builder";
-import { createWorkflowOutput } from "../../../core/hooks/useWorkflowOutput";
 
 interface WriterProps {
   content: string;
-  setContent: (value: string) => void;
-  setMetadata: (value: {
-    wordCount: number;
-    readingTime: number;
-    keywords: string[];
-  }) => void;
 }
 
-interface WriterOutputs {
+interface WriterOutput {
   content: string;
   metadata: {
     wordCount: number;
@@ -20,37 +13,18 @@ interface WriterOutputs {
   };
 }
 
-export const LLMWriter = createWorkflow<WriterProps, WriterOutputs>((props) => {
-  const [content, setContent] = createWorkflowOutput<string>("");
-  const [metadata, setMetadata] = createWorkflowOutput<{
-    wordCount: number;
-    readingTime: number;
-    keywords: string[];
-  }>({ wordCount: 0, readingTime: 0, keywords: [] });
+export const LLMWriter = createWorkflow<WriterProps, WriterOutput>(
+  async (props, render) => {
+    const processedContent = `Written content based on: ${props.content}`;
+    const processedMetadata = {
+      wordCount: processedContent.split(" ").length,
+      readingTime: Math.ceil(processedContent.split(" ").length / 200),
+      keywords: ["sample", "content", "test"],
+    };
 
-  const processedContent = `Written content based on: ${props.content}`;
-  const processedMetadata = {
-    wordCount: processedContent.split(" ").length,
-    readingTime: Math.ceil(processedContent.split(" ").length / 200),
-    keywords: ["sample", "content", "test"],
-  };
-
-  setContent(processedContent);
-  setMetadata(processedMetadata);
-
-  // Forward outputs to parent if setters were provided
-  if (props.setContent) {
-    content.then(props.setContent);
+    return render({
+      content: processedContent,
+      metadata: processedMetadata,
+    });
   }
-  if (props.setMetadata) {
-    metadata.then(props.setMetadata);
-  }
-
-  return {
-    element: null,
-    outputs: {
-      content: content,
-      metadata: metadata,
-    },
-  };
-});
+);
