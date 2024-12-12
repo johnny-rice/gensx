@@ -1,5 +1,7 @@
 import React from "react";
 import { Step } from "../components/Step";
+import { renderWorkflow } from "./renderWorkflow";
+import { ExecutionContext } from "../context/ExecutionContext";
 
 interface WorkflowOutput<T> {
   value: Promise<T>;
@@ -11,7 +13,6 @@ export interface WorkflowResult<TOutputs extends Record<string, any>> {
   outputs?: {
     [K in keyof TOutputs]: WorkflowOutput<TOutputs[K]>;
   };
-  steps: Step[];
 }
 
 type HasOutput<T> = T extends { output: any } ? T["output"] : never;
@@ -31,53 +32,109 @@ type WorkflowSharedProps<TOutputs extends Record<string, any>> = {
   children?: (outputs: WorkflowOutputPromises<TOutputs>) => React.ReactNode;
 };
 
-export function defineWorkflow<
+// Type to convert a props type to allow promises
+type PromiseProps<TProps> = {
+  [K in keyof TProps]: TProps[K] | Promise<TProps[K]>;
+};
+
+// Type to ensure implementation gets resolved props
+type ResolvedProps<TProps> = {
+  [K in keyof TProps]: TProps[K] extends Promise<infer U> ? U : TProps[K];
+};
+
+async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
+  return value instanceof Promise ? await value : value;
+}
+
+export function createWorkflow<
   TProps extends Record<string, any>,
   TOutputs extends Record<string, any> = Record<string, never>
 >(
-  workflowFn: (props: TProps) => Omit<WorkflowResult<TOutputs>, "steps">
-): React.ComponentType<WorkflowComponentProps<TProps, TOutputs>> {
+  implementation: (
+    props: ResolvedProps<TProps>
+  ) => Omit<WorkflowResult<TOutputs>, "steps">
+): React.ComponentType<WorkflowComponentProps<PromiseProps<TProps>, TOutputs>> {
   const WorkflowComponent = (
-    props: WorkflowComponentProps<TProps, TOutputs>
+    props: WorkflowComponentProps<PromiseProps<TProps>, TOutputs>
   ): React.ReactElement | null => {
     const { children, setOutput, ...componentProps } = props;
 
-    // Get the workflow result
-    const result = workflowFn(componentProps as TProps);
+    const step: Step = {
+      async execute(context) {
+        // Resolve all props in parallel
+        const resolvedProps = {} as ResolvedProps<TProps>;
+        await Promise.all(
+          Object.entries(componentProps).map(async ([key, value]) => {
+            resolvedProps[key as keyof TProps] = await resolveValue(value);
+          })
+        );
 
-    // If we have children and outputs, render them together
-    if (children && result.outputs) {
-      // Convert WorkflowOutputs to the format expected by children
-      const outputPromises = Object.entries(result.outputs).reduce(
-        (acc, [key, value]) => ({
-          ...acc,
-          [key]: value.value,
-        }),
-        {} as WorkflowOutputPromises<TOutputs>
-      );
+        // Get the workflow result with resolved props
+        const result = implementation(resolvedProps);
 
-      const childElement = children(outputPromises);
-      return React.createElement(
-        React.Fragment,
-        null,
-        result.element,
-        childElement
-      );
-    }
+        // Process the element chain first
+        if (result.element) {
+          const elementSteps = renderWorkflow(result.element);
+          await Promise.all(elementSteps.map((step) => step.execute(context)));
+        }
 
-    return result.element;
+        // If we have a setOutput prop, forward the output
+        if (setOutput && result.outputs?.output) {
+          await result.outputs.output.value;
+          setOutput(await result.outputs.output.value);
+        }
+
+        // If we have children and outputs, process them after element chain
+        if (children && result.outputs) {
+          const outputPromises = Object.entries(result.outputs).reduce(
+            (acc, [key, value]) => ({
+              ...acc,
+              [key]: value.value,
+            }),
+            {} as WorkflowOutputPromises<TOutputs>
+          );
+
+          const childElement = children(outputPromises);
+          if (childElement) {
+            const childSteps = renderWorkflow(
+              childElement as React.ReactElement
+            );
+            await Promise.all(childSteps.map((step) => step.execute(context)));
+          }
+        }
+      },
+    };
+
+    return React.createElement("div", {
+      "data-workflow-step": true,
+      step,
+    });
   };
 
   // For execution phase, we need a way to get the workflow result without React
-  WorkflowComponent.getWorkflowResult = (
-    props: WorkflowComponentProps<TProps, TOutputs>
-  ): Omit<WorkflowResult<TOutputs>, "steps"> => {
-    const { children, ...componentProps } = props;
-    const result = workflowFn(componentProps as TProps);
+  WorkflowComponent.getWorkflowResult = async (
+    props: WorkflowComponentProps<PromiseProps<TProps>, TOutputs>
+  ): Promise<Omit<WorkflowResult<TOutputs>, "steps">> => {
+    const { children, setOutput, ...componentProps } = props;
 
-    // If we have children and outputs, include their element
+    // Resolve all props before passing to implementation
+    const resolvedProps = {} as ResolvedProps<TProps>;
+    for (const [key, value] of Object.entries(componentProps)) {
+      resolvedProps[key as keyof TProps] = await resolveValue(value);
+    }
+
+    const result = implementation(resolvedProps);
+
+    // If we have a setOutput prop, forward the output
+    if (setOutput && result.outputs?.output) {
+      result.outputs.output.value.then(setOutput);
+    }
+
+    // Process the element chain first to ensure proper execution order
+    let element = result.element;
+
+    // Then process children if they exist
     if (children && result.outputs) {
-      // Convert WorkflowOutputs to the format expected by children
       const outputPromises = Object.entries(result.outputs).reduce(
         (acc, [key, value]) => ({
           ...acc,
@@ -87,24 +144,22 @@ export function defineWorkflow<
       );
 
       const childElement = children(outputPromises);
-      return {
-        ...result,
-        element: React.createElement(
+      if (childElement) {
+        element = React.createElement(
           React.Fragment,
           null,
-          result.element,
+          element,
           childElement
-        ),
-      };
+        );
+      }
     }
 
-    return result;
+    return {
+      element,
+      outputs: result.outputs,
+    };
   };
 
-  WorkflowComponent.displayName = `${workflowFn.name}Workflow`;
+  WorkflowComponent.displayName = "Workflow";
   return WorkflowComponent;
-}
-
-async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
-  return await value;
 }

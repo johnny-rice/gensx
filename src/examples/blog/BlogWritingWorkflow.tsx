@@ -3,7 +3,7 @@ import { LLMResearcher } from "../shared/components/LLMResearcher";
 import { LLMWriter } from "../shared/components/LLMWriter";
 import { LLMEditor } from "../shared/components/LLMEditor";
 import { createWorkflowOutput } from "../../core/hooks/useWorkflowOutput";
-import { defineWorkflow } from "../../core/utils/workflow-builder";
+import { createWorkflow } from "../../core/utils/workflow-builder";
 
 interface BlogWritingWorkflowInputs {
   title: string;
@@ -15,7 +15,7 @@ interface BlogWritingWorkflowOutputs {
   output: string;
 }
 
-export const BlogWritingWorkflow = defineWorkflow<
+export const BlogWritingWorkflow = createWorkflow<
   BlogWritingWorkflowInputs,
   BlogWritingWorkflowOutputs
 >(({ title, prompt, setOutput }) => {
@@ -32,12 +32,12 @@ export const BlogWritingWorkflow = defineWorkflow<
     keywords: string[];
   }>({ wordCount: 0, readingTime: 0, keywords: [] });
 
-  // Create our own output if one wasn't provided
-  const [internalOutput, setInternalOutput] = createWorkflowOutput<string>("");
+  // Final edited output
+  const [finalOutput, setFinalOutput] = createWorkflowOutput<string>("");
 
-  // If setOutput is provided, forward our internal output to it
+  // If setOutput is provided, forward the final output to it
   if (setOutput) {
-    internalOutput.then(setOutput);
+    finalOutput.then(setOutput);
   }
 
   const element = (
@@ -54,7 +54,7 @@ export const BlogWritingWorkflow = defineWorkflow<
         setContent={setDraft}
         setMetadata={setMetadata}
       />
-      <LLMEditor content={draft} setContent={setInternalOutput} />
+      <LLMEditor content={draft} setContent={setFinalOutput} />
     </>
   );
 
@@ -62,8 +62,8 @@ export const BlogWritingWorkflow = defineWorkflow<
     element,
     outputs: {
       output: {
-        value: internalOutput,
-        setValue: setInternalOutput,
+        value: finalOutput,
+        setValue: setFinalOutput,
       },
     },
   };

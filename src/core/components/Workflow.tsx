@@ -1,14 +1,10 @@
 import React from "react";
 import { ExecutionContext } from "../context/ExecutionContext";
 import { Step } from "./Step";
-import { StepContext } from "../context/StepContext";
 import { renderWorkflow } from "../utils/renderWorkflow";
 
 export function Workflow({ children }: { children: React.ReactNode }) {
-  const steps: Step[] = [];
-  return (
-    <StepContext.Provider value={{ steps }}>{children}</StepContext.Provider>
-  );
+  return React.createElement(React.Fragment, null, children);
 }
 
 export class WorkflowContext {
@@ -19,7 +15,8 @@ export class WorkflowContext {
   private executedSteps: Set<string> = new Set();
 
   constructor(workflow: React.ReactElement) {
-    this.steps = renderWorkflow(workflow);
+    const wrappedWorkflow = React.createElement(React.Fragment, null, workflow);
+    this.steps = renderWorkflow(wrappedWorkflow);
   }
 
   notifyUpdate(componentId: string) {
@@ -33,26 +30,23 @@ export class WorkflowContext {
       return;
     }
 
-    try {
-      const context = new ExecutionContext();
-      const childSteps = await step.execute(context);
-      this.executedSteps.add(stepId);
+    const context = new ExecutionContext();
+    const childSteps = await step.execute(context);
+    this.executedSteps.add(stepId);
 
-      if (childSteps && childSteps.length > 0) {
-        this.dynamicSteps.set(stepId, childSteps);
+    if (childSteps && childSteps.length > 0) {
+      this.dynamicSteps.set(stepId, childSteps);
 
-        const childPromises = childSteps.map((childStep, index) => {
+      // Execute all child steps in parallel
+      await Promise.all(
+        childSteps.map((childStep, index) => {
           const childId = `${stepId}_${index}`;
           if (!this.executedSteps.has(childId)) {
             return this.executeStep(childStep, childId);
           }
           return Promise.resolve();
-        });
-
-        await Promise.all(childPromises);
-      }
-    } catch (error) {
-      throw error;
+        })
+      );
     }
   }
 
@@ -60,39 +54,35 @@ export class WorkflowContext {
     WorkflowContext.current = this;
 
     try {
-      const initialStepPromises = this.steps.map((step, index) => {
-        const stepId = index.toString();
-        return this.executeStep(step, stepId);
-      });
+      // Execute all initial steps in parallel
+      await Promise.all(
+        this.steps.map((step, index) =>
+          this.executeStep(step, index.toString())
+        )
+      );
 
-      await Promise.all(initialStepPromises);
-
+      // Process any remaining steps in parallel
       while (this.executionQueue.size > 0) {
         const queuedIds = Array.from(this.executionQueue);
         this.executionQueue.clear();
 
         await Promise.all(
           queuedIds.map(async (id) => {
-            try {
-              const step = this.steps[parseInt(id)];
-              if (step) {
-                return this.executeStep(step, id);
-              } else {
-                for (const [parentId, steps] of this.dynamicSteps.entries()) {
-                  const dynamicIndex = parseInt(id.split("_")[1]);
-                  if (!isNaN(dynamicIndex) && steps[dynamicIndex]) {
-                    return this.executeStep(steps[dynamicIndex], id);
-                  }
-                }
+            const step = this.steps[parseInt(id)];
+            if (step) {
+              return this.executeStep(step, id);
+            }
+
+            // Check dynamic steps
+            for (const [parentId, steps] of this.dynamicSteps.entries()) {
+              const dynamicIndex = parseInt(id.split("_")[1]);
+              if (!isNaN(dynamicIndex) && steps[dynamicIndex]) {
+                return this.executeStep(steps[dynamicIndex], id);
               }
-            } catch (error) {
-              throw error;
             }
           })
         );
       }
-    } catch (error) {
-      throw error;
     } finally {
       WorkflowContext.current = null;
     }

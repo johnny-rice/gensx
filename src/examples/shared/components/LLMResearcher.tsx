@@ -1,4 +1,5 @@
-import { createComponent } from "../../../core/components/createComponent";
+import { createWorkflow } from "../../../core/utils/workflow-builder";
+import { createWorkflowOutput } from "../../../core/hooks/useWorkflowOutput";
 
 interface ResearcherProps {
   title: string;
@@ -8,10 +9,20 @@ interface ResearcherProps {
   setSummary: (value: string) => void;
 }
 
-export const LLMResearcher = createComponent<ResearcherProps>(
-  async ({ title, prompt, setResearch, setSources, setSummary }) => {
+interface ResearcherOutputs {
+  research: string;
+  sources: string[];
+  summary: string;
+}
+
+export const LLMResearcher = createWorkflow<ResearcherProps, ResearcherOutputs>(
+  (props) => {
+    const [research, setResearch] = createWorkflowOutput<string>("");
+    const [sources, setSources] = createWorkflowOutput<string[]>([]);
+    const [summary, setSummary] = createWorkflowOutput<string>("");
+
     const result = {
-      research: `Research based on title: ${title}, prompt: ${prompt}`,
+      research: `Research based on title: ${props.title}, prompt: ${props.prompt}`,
       sources: ["source1.com", "source2.com"],
       summary: "Brief summary of findings",
     };
@@ -19,5 +30,25 @@ export const LLMResearcher = createComponent<ResearcherProps>(
     setResearch(result.research);
     setSources(result.sources);
     setSummary(result.summary);
+
+    // Forward outputs to parent if setters were provided
+    if (props.setResearch) {
+      research.then(props.setResearch);
+    }
+    if (props.setSources) {
+      sources.then(props.setSources);
+    }
+    if (props.setSummary) {
+      summary.then(props.setSummary);
+    }
+
+    return {
+      element: null,
+      outputs: {
+        research: { value: research, setValue: setResearch },
+        sources: { value: sources, setValue: setSources },
+        summary: { value: summary, setValue: setSummary },
+      },
+    };
   }
 );
