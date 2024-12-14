@@ -1,5 +1,5 @@
 suite("workflow", () => {
-  test("that vitests works", () => {
+  test("that vitest works", () => {
     expect(1).toBe(1);
   });
 });
