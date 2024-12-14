@@ -9,7 +9,7 @@ export interface WorkflowContext {
 
 class WorkflowContextImpl implements WorkflowContext {
   current: WorkflowContext["current"] = {
-    notifyUpdate(componentId: string) {
+    notifyUpdate(_componentId: string) {
       // Implementation to handle component updates
       // This might involve triggering re-renders or updating dependent components
     },
@@ -20,5 +20,5 @@ class WorkflowContextImpl implements WorkflowContext {
 }
 
 export const WorkflowContext = createContext<WorkflowContext>(
-  new WorkflowContextImpl()
+  new WorkflowContextImpl(),
 );

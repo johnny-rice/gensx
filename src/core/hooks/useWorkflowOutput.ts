@@ -1,9 +1,9 @@
-import { useRef } from "react";
-
 export const workflowOutputs = new Map<
   string,
   {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     promise: Promise<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolve: (value: any) => void;
     hasResolved: boolean;
   }
@@ -15,13 +15,13 @@ function generateStableId() {
 }
 
 export function createWorkflowOutput<T>(
-  _initialValue: T
+  _initialValue: T,
 ): [Promise<T>, (value: T) => void] {
   const outputId = generateStableId();
 
   if (!workflowOutputs.has(outputId)) {
     let resolvePromise: (value: T) => void;
-    let rejectPromise: (error: any) => void;
+    let rejectPromise: (error: unknown) => void;
     const promise = new Promise<T>((resolve, reject) => {
       resolvePromise = resolve;
       rejectPromise = reject;
@@ -32,7 +32,7 @@ export function createWorkflowOutput<T>(
       if (!workflowOutputs.get(outputId)?.hasResolved) {
         console.error(`Output ${outputId} timed out without being resolved`);
         rejectPromise(
-          new Error(`Output ${outputId} timed out waiting for resolution`)
+          new Error(`Output ${outputId} timed out waiting for resolution`),
         );
       }
     }, 5000);
@@ -52,5 +52,6 @@ export function createWorkflowOutput<T>(
   }
 
   const output = workflowOutputs.get(outputId)!;
-  return [output.promise, output.resolve];
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return [output.promise, output.resolve] as const;
 }

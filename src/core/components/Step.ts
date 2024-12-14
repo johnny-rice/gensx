@@ -1,5 +1,5 @@
 import { ExecutionContext } from "../context/ExecutionContext";
 
 export interface Step {
-  execute(context: ExecutionContext): Promise<Step[] | void>;
+  execute(context: ExecutionContext): Promise<Step[]>;
 }

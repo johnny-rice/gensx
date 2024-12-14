@@ -1,14 +1,14 @@
 import React from "react";
+
 import { Step } from "../components/Step";
-import { renderWorkflow } from "./renderWorkflow";
-import { ExecutionContext } from "../context/ExecutionContext";
 import { createWorkflowOutput } from "../hooks/useWorkflowOutput";
+import { renderWorkflow } from "./renderWorkflow";
 
 type WorkflowRenderFunction<T> = (value: T) => React.ReactElement | null;
 
 type WorkflowImplementation<TProps, TOutput> = (
   props: ResolvedProps<TProps>,
-  render: WorkflowRenderFunction<TOutput>
+  render: WorkflowRenderFunction<TOutput>,
 ) =>
   | React.ReactElement
   | Promise<React.ReactElement>
@@ -37,15 +37,15 @@ async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
 // Keep track of processed results to prevent infinite loops
 const processedResults = new Set<string>();
 
-export function createWorkflow<TProps extends Record<string, any>, TOutput>(
-  implementation: WorkflowImplementation<TProps, TOutput>
+export function createWorkflow<TProps extends Record<string, unknown>, TOutput>(
+  implementation: WorkflowImplementation<TProps, TOutput>,
 ): React.ComponentType<WorkflowComponentProps<PromiseProps<TProps>, TOutput>> {
   const WorkflowComponent = (
-    props: WorkflowComponentProps<PromiseProps<TProps>, TOutput>
+    props: WorkflowComponentProps<PromiseProps<TProps>, TOutput>,
   ): React.ReactElement | null => {
     const { children, setOutput, ...componentProps } = props;
-    const [output, setWorkflowOutput] = createWorkflowOutput<TOutput>(
-      null as any
+    const [, setWorkflowOutput] = createWorkflowOutput<TOutput>(
+      null as unknown as TOutput,
     );
 
     const step: Step = {
@@ -55,12 +55,13 @@ export function createWorkflow<TProps extends Record<string, any>, TOutput>(
           const resolvedProps = {} as ResolvedProps<TProps>;
           await Promise.all(
             Object.entries(componentProps).map(async ([key, value]) => {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               resolvedProps[key as keyof TProps] = await resolveValue(value);
-            })
+            }),
           );
 
           // Create render function that sets output and returns element
-          const render: WorkflowRenderFunction<TOutput> = (value) => {
+          const render: WorkflowRenderFunction<TOutput> = value => {
             setWorkflowOutput(value);
             if (setOutput) {
               setOutput(value);
@@ -73,7 +74,7 @@ export function createWorkflow<TProps extends Record<string, any>, TOutput>(
 
           // Get the workflow result with resolved props
           const element = await Promise.resolve(
-            implementation(resolvedProps, render)
+            implementation(resolvedProps, render),
           );
 
           // Process the element chain
@@ -84,6 +85,8 @@ export function createWorkflow<TProps extends Record<string, any>, TOutput>(
               await step.execute(context);
             }
           }
+
+          return [];
         } catch (error) {
           console.error("Error in workflow step:", error);
           throw error;
@@ -99,7 +102,7 @@ export function createWorkflow<TProps extends Record<string, any>, TOutput>(
 
   // For execution phase, we need a way to get the workflow result without React
   WorkflowComponent.getWorkflowResult = async (
-    props: WorkflowComponentProps<PromiseProps<TProps>, TOutput>
+    props: WorkflowComponentProps<PromiseProps<TProps>, TOutput>,
   ): Promise<React.ReactElement | null> => {
     const { children, setOutput, ...componentProps } = props;
 
@@ -110,19 +113,20 @@ export function createWorkflow<TProps extends Record<string, any>, TOutput>(
     }
     processedResults.add(resultKey);
 
-    const [output, setWorkflowOutput] = createWorkflowOutput<TOutput>(
-      null as any
+    const [, setWorkflowOutput] = createWorkflowOutput<TOutput>(
+      null as unknown as TOutput,
     );
 
     try {
       // Resolve all props before passing to implementation
       const resolvedProps = {} as ResolvedProps<TProps>;
       for (const [key, value] of Object.entries(componentProps)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         resolvedProps[key as keyof TProps] = await resolveValue(value);
       }
 
       // Create render function that sets output and returns element
-      const render: WorkflowRenderFunction<TOutput> = (value) => {
+      const render: WorkflowRenderFunction<TOutput> = value => {
         setWorkflowOutput(value);
         if (setOutput) {
           setOutput(value);

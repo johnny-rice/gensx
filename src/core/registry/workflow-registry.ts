@@ -1,7 +1,7 @@
-type WorkflowDefinition = {
+interface WorkflowDefinition {
   id: string;
   component: React.ReactElement;
-};
+}
 
 const workflowRegistry = new Map<string, WorkflowDefinition>();
 
