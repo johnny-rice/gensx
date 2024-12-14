@@ -1,4 +1,5 @@
-import { createWorkflow } from "../../src/core/utils/workflow-builder";
+import { createWorkflow } from "@/src//utils/workflow-builder";
+
 import { LLMEditor } from "../shared/components/LLMEditor";
 import { LLMResearcher } from "../shared/components/LLMResearcher";
 import { LLMWriter } from "../shared/components/LLMWriter";

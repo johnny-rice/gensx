@@ -1,7 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import React from "react";
+
 import { Step } from "../components/Step";
 
-type FunctionComponent = (props: any) => React.ReactElement | null;
+type FunctionComponent = (props: unknown) => React.ReactElement | null;
 
 // Keep track of workflows that have been processed to avoid double execution
 const processedWorkflows = new Set<string>();
@@ -27,7 +33,7 @@ export function renderWorkflow(element: React.ReactElement): Step[] {
         }_${Object.entries(el.props)
           .map(
             ([key, value]) =>
-              `${key}:${value instanceof Promise ? "Promise" : value}`
+              `${key}:${value instanceof Promise ? "Promise" : (value as string)}`,
           )
           .join("_")}`;
 
@@ -54,6 +60,7 @@ export function renderWorkflow(element: React.ReactElement): Step[] {
                   await nestedStep.execute(context);
                 }
               }
+              return [];
             },
           };
 

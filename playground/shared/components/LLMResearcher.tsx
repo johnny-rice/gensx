@@ -1,4 +1,4 @@
-import { createWorkflow } from "@/src/core/utils/workflow-builder";
+import { createWorkflow } from "@/src/utils/workflow-builder";
 
 interface ResearcherProps {
   title: string;
