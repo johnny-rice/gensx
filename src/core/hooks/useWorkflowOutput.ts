@@ -14,38 +14,6 @@ function generateStableId() {
   return `output_${counter++}`;
 }
 
-export function useWorkflowOutput<T>(
-  _initialValue: T // Kept for API compatibility but unused
-): [Promise<T>, (value: T) => void] {
-  const outputId = useRef(generateStableId()).current;
-
-  if (!workflowOutputs.has(outputId)) {
-    let resolvePromise: (value: T) => void;
-    const promise = new Promise<T>((resolve) => {
-      resolvePromise = resolve;
-    });
-
-    workflowOutputs.set(outputId, {
-      promise,
-      resolve: resolvePromise!,
-      hasResolved: false,
-    });
-  }
-
-  const output = workflowOutputs.get(outputId)!;
-
-  const setValue = (value: T) => {
-    if (output.hasResolved) {
-      throw new Error("Cannot set value multiple times");
-    }
-    output.resolve(value);
-    output.hasResolved = true;
-  };
-
-  return [output.promise, setValue];
-}
-
-// Non-hook version for use outside React components
 export function createWorkflowOutput<T>(
   _initialValue: T
 ): [Promise<T>, (value: T) => void] {
@@ -53,26 +21,41 @@ export function createWorkflowOutput<T>(
 
   if (!workflowOutputs.has(outputId)) {
     let resolvePromise: (value: T) => void;
-    const promise = new Promise<T>((resolve) => {
+    let rejectPromise: (error: any) => void;
+    const promise = new Promise<T>((resolve, reject) => {
       resolvePromise = resolve;
+      rejectPromise = reject;
     });
+
+    // Only add timeout if WORKFLOW_TIMEOUT is set
+    let timeoutId: NodeJS.Timeout | undefined;
+    if (process.env.WORKFLOW_TIMEOUT === "true") {
+      timeoutId = setTimeout(() => {
+        if (!workflowOutputs.get(outputId)?.hasResolved) {
+          console.error(`Output ${outputId} timed out without being resolved`);
+          rejectPromise(
+            new Error(`Output ${outputId} timed out waiting for resolution`)
+          );
+        }
+      }, 5000);
+    }
 
     workflowOutputs.set(outputId, {
       promise,
-      resolve: resolvePromise!,
+      resolve: (value: T) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        if (workflowOutputs.get(outputId)?.hasResolved) {
+          throw new Error("Cannot set value multiple times");
+        }
+        resolvePromise(value);
+        workflowOutputs.get(outputId)!.hasResolved = true;
+      },
       hasResolved: false,
     });
   }
 
   const output = workflowOutputs.get(outputId)!;
-
-  const setValue = (value: T) => {
-    if (output.hasResolved) {
-      throw new Error("Cannot set value multiple times");
-    }
-    output.resolve(value);
-    output.hasResolved = true;
-  };
-
-  return [output.promise, setValue];
+  return [output.promise, output.resolve];
 }

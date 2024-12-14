@@ -1,13 +1,12 @@
-import { createComponent } from "../../../core/components/createComponent";
+import { createWorkflow } from "../../../core/utils/workflow-builder";
 
 interface EditorProps {
   content: string;
-  setContent: (value: string) => void;
 }
 
-export const LLMEditor = createComponent<EditorProps>(async (props) => {
-  console.log("running llm editor");
-  console.log("content:", props.content);
-  const editedContent = `Edited: ${props.content}`;
-  props.setContent(editedContent);
-});
+export const LLMEditor = createWorkflow<EditorProps, string>(
+  async (props, render) => {
+    const editedContent = `Edited: ${props.content}`;
+    return render(editedContent);
+  }
+);

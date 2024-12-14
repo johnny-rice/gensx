@@ -4,36 +4,78 @@ import { BlogWritingWorkflow } from "./examples/blog/BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./examples/tweet/TweetWritingWorkflow";
 import { WorkflowContext } from "./core/components/Workflow";
 import { createWorkflowOutput } from "./core/hooks/useWorkflowOutput";
-import { workflowOutputs } from "./core/hooks/useWorkflowOutput";
 
-async function main() {
+async function runParallelWorkflow() {
   const title = "Programmatic Secrets with ESC";
   const prompt = "Write an article...";
 
-  // Create shared outputs between workflows
   const [blogPost, setBlogPost] = createWorkflowOutput("");
   const [tweet, setTweet] = createWorkflowOutput("");
 
   const workflow = (
     <Workflow>
-      <TweetWritingWorkflow content={blogPost} setOutput={setTweet} />
       <BlogWritingWorkflow
         title={title}
         prompt={prompt}
         setOutput={setBlogPost}
       />
+      <TweetWritingWorkflow content={blogPost} setOutput={setTweet} />
     </Workflow>
   );
 
-  // Execute the workflow
   const context = new WorkflowContext(workflow);
   await context.execute();
 
+  console.log("\n=== Parallel Workflow Results ===");
   console.log("Blog Post:", await blogPost);
   console.log("Tweet:", await tweet);
-  console.log("workflowOutputs:", workflowOutputs);
+}
+
+async function runNestedWorkflow() {
+  const title = "Programmatic Secrets with ESC";
+  const prompt = "Write an article...";
+
+  let blogPost = "";
+  let tweet = "";
+
+  const workflow = (
+    <Workflow>
+      <BlogWritingWorkflow
+        title={new Promise((resolve) => resolve(title))}
+        prompt={prompt}
+      >
+        {(blogPostResult) => (
+          <TweetWritingWorkflow content={blogPostResult}>
+            {(tweetResult) => {
+              blogPost = blogPostResult;
+              tweet = tweetResult;
+              return null;
+            }}
+          </TweetWritingWorkflow>
+        )}
+      </BlogWritingWorkflow>
+    </Workflow>
+  );
+
+  const context = new WorkflowContext(workflow);
+  await context.execute();
+
+  console.log("\n=== Nested Workflow Results ===");
+  console.log("Blog Post:", blogPost);
+  console.log("Tweet:", tweet);
+}
+
+async function main() {
+  try {
+    await runParallelWorkflow();
+    await runNestedWorkflow();
+  } catch (error) {
+    console.error("Workflow execution failed:", error);
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {
-  console.error("Workflow execution failed:", error);
+  console.error("Unhandled error:", error);
+  process.exit(1);
 });

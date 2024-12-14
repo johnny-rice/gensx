@@ -1,24 +1,23 @@
-import { createComponent } from "../../../core/components/createComponent";
+import { createWorkflow } from "../../../core/utils/workflow-builder";
 
 interface ResearcherProps {
   title: string;
   prompt: string;
-  setResearch: (value: string) => void;
-  setSources: (value: string[]) => void;
-  setSummary: (value: string) => void;
 }
 
-export const LLMResearcher = createComponent<ResearcherProps>(
-  async ({ title, prompt, setResearch, setSources, setSummary }) => {
+interface ResearcherOutput {
+  research: string;
+  sources: string[];
+  summary: string;
+}
+
+export const LLMResearcher = createWorkflow<ResearcherProps, ResearcherOutput>(
+  async (props, render) => {
     const result = {
-      research: `Research based on title: ${title}, prompt: ${prompt}`,
+      research: `Research based on title: ${props.title}, prompt: ${props.prompt}`,
       sources: ["source1.com", "source2.com"],
       summary: "Brief summary of findings",
     };
-
-    console.log("rendering llm researcher");
-    setResearch(result.research);
-    setSources(result.sources);
-    setSummary(result.summary);
+    return render(result);
   }
 );
