@@ -1,8 +1,7 @@
-import React from "react";
+import { createWorkflow } from "../../src/core/utils/workflow-builder";
+import { LLMEditor } from "../shared/components/LLMEditor";
 import { LLMResearcher } from "../shared/components/LLMResearcher";
 import { LLMWriter } from "../shared/components/LLMWriter";
-import { LLMEditor } from "../shared/components/LLMEditor";
-import { createWorkflow } from "../../core/utils/workflow-builder";
 
 interface BlogWritingWorkflowInputs {
   title: string;
@@ -18,7 +17,7 @@ export const BlogWritingWorkflow = createWorkflow<
       <LLMWriter content={research}>
         {({ content }) => (
           <LLMEditor content={content}>
-            {(editedContent) => render(editedContent)}
+            {editedContent => render(editedContent)}
           </LLMEditor>
         )}
       </LLMWriter>

@@ -37,7 +37,8 @@ async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
 // Keep track of processed results to prevent infinite loops
 const processedResults = new Set<string>();
 
-export function createWorkflow<TProps extends Record<string, unknown>, TOutput>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createWorkflow<TProps extends Record<string, any>, TOutput>(
   implementation: WorkflowImplementation<TProps, TOutput>,
 ): React.ComponentType<WorkflowComponentProps<PromiseProps<TProps>, TOutput>> {
   const WorkflowComponent = (

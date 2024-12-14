@@ -1,9 +1,9 @@
-import React from "react";
-import { Workflow } from "./core/components/Workflow";
-import { BlogWritingWorkflow } from "./examples/blog/BlogWritingWorkflow";
-import { TweetWritingWorkflow } from "./examples/tweet/TweetWritingWorkflow";
-import { WorkflowContext } from "./core/components/Workflow";
-import { createWorkflowOutput } from "./core/hooks/useWorkflowOutput";
+import { Workflow } from "@/src/core/components/Workflow";
+import { WorkflowContext } from "@/src/core/components/Workflow";
+import { createWorkflowOutput } from "@/src/core/hooks/useWorkflowOutput";
+
+import { BlogWritingWorkflow } from "./blog/BlogWritingWorkflow";
+import { TweetWritingWorkflow } from "./tweet/TweetWritingWorkflow";
 
 async function runParallelWorkflow() {
   const title = "Programmatic Secrets with ESC";
@@ -38,9 +38,9 @@ async function runNestedWorkflow() {
   const workflow = (
     <Workflow>
       <BlogWritingWorkflow title={title} prompt={prompt}>
-        {(blogPost) => (
+        {blogPost => (
           <TweetWritingWorkflow content={blogPost}>
-            {(tweet) => {
+            {tweet => {
               console.log("\n=== Nested Workflow Results ===");
               console.log("Tweet:", tweet);
               console.log("Blog Post:", blogPost);
@@ -66,7 +66,7 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+main().catch((error: unknown) => {
   console.error("Unhandled error:", error);
   process.exit(1);
 });

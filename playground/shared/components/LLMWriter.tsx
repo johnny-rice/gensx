@@ -1,4 +1,4 @@
-import { createWorkflow } from "../../../core/utils/workflow-builder";
+import { createWorkflow } from "@/src/core/utils/workflow-builder";
 
 interface WriterProps {
   content: string;
@@ -14,6 +14,7 @@ interface WriterOutput {
 }
 
 export const LLMWriter = createWorkflow<WriterProps, WriterOutput>(
+  // eslint-disable-next-line @typescript-eslint/require-await
   async (props, render) => {
     const processedContent = `Written content based on: ${props.content}`;
     const processedMetadata = {
@@ -26,5 +27,5 @@ export const LLMWriter = createWorkflow<WriterProps, WriterOutput>(
       content: processedContent,
       metadata: processedMetadata,
     });
-  }
+  },
 );
