@@ -1,6 +1,6 @@
-import { Workflow } from "@/src/components/Workflow";
-import { WorkflowContext } from "@/src/components/Workflow";
-import { createWorkflowOutput } from "@/src/hooks/useWorkflowOutput";
+import { Workflow } from "@/src/index";
+import { WorkflowContext } from "@/src/index";
+import { createWorkflowOutput } from "@/src/index";
 
 import { BlogWritingWorkflow } from "./blog/BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./tweet/TweetWritingWorkflow";

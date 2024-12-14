@@ -1,4 +1,4 @@
-import { createWorkflow } from "@/src/utils/workflow-builder";
+import { createWorkflow } from "@/src/index";
 
 interface EditorProps {
   content: string;
