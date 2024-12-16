@@ -1,7 +1,7 @@
 repository:
-  name: llmx
+  name: gensx
   description: Make LLMs work good
-  homepage: github.com/cortexclick/llmx
+  homepage: github.com/cortexclick/gensx
   topics: nodejs, template, typescript, typescript-library, jsx
   has_wiki: false
   private: false

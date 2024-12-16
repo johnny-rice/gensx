@@ -1,5 +1,5 @@
 {
-  "name": "llmx",
+  "name": "gensx",
   "version": "0.0.1",
   "description": "Make LLMs work good",
   "main": "dist/index.cjs",
@@ -8,12 +8,12 @@
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/cortexclick/llmx/issues"
+    "url": "https://github.com/cortexclick/gensx/issues"
   },
-  "homepage": "https://github.com/cortexclick/llmx#readme",
+  "homepage": "https://github.com/cortexclick/gensx#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cortexclick/llmx.git"
+    "url": "git+https://github.com/cortexclick/gensx.git"
   },
   "keywords": [
     "typescript",
