@@ -1,0 +1,33 @@
+- name: kind/feature
+  description: New Feature
+  color: 07D90A
+- name: kind/bug
+  description: Bug/Regression
+  color: F4D03F
+- name: kind/breaking-change
+  description: Breaking change
+  color: F1F800
+- name: "autorelease: tagged"
+  description: Used by release-please to indicate a release has been tagged
+  color: EDEDED
+- name: "autorelease: pending"
+  description: Used by release-please to indicate a release is pending
+  color: EDEDED
+- name: kind/todo
+  description: Action we need to perform at some point
+  color: 82FC28
+- name: area/source
+  description: Indicates the scope is related to the library source code
+  color: FDC720
+- name: area/build
+  description: Indicates the change is related to the build and pipelines
+  color: 0FD4DA
+- name: area/docs
+  description: Indicates the change is related to the documentation
+  color: 228AFF
+- name: kind/documentation
+  description: Improvements or additions to documentation
+  color: 228AFF
+- name: kind/duplicate
+  description: This issue or pull request already exists
+  color: 17202A
