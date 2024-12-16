@@ -1,4 +1,4 @@
-name: '🏷️ Conventional release labels'
+name: "🏷️ Conventional release labels"
 
 on:
   pull_request_target:
@@ -10,4 +10,4 @@ jobs:
     steps:
       - uses: bcoe/conventional-release-labels@v1
         with:
-          type_labels: '{"feat": "🚀 Feature", "fix": "🕵🏻 Fix", "breaking": "⚠️ Breaking Change"}'
+          type_labels: '{"feat": "kind/feature", "fix": "kind/bug", "breaking": "kind/breaking-change"}'
