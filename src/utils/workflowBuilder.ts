@@ -2,7 +2,7 @@ import React from "react";
 
 import { Step } from "../components/Step";
 import { createWorkflowOutput } from "../hooks/useWorkflowOutput";
-import { renderWorkflow } from "./renderWorkflow";
+import { renderWorkflow } from "../utils/renderWorkflow";
 
 type WorkflowRenderFunction<T> = (value: T) => React.ReactElement | null;
 
@@ -30,8 +30,11 @@ type ResolvedProps<TProps> = {
   [K in keyof TProps]: TProps[K] extends Promise<infer U> ? U : TProps[K];
 };
 
+// This function resolves value in a promise.
+// You can await a promise or a plain value and the effect is the same.
+// Even though this function might seem unnecessary, using it makes our intent more clear.
 async function resolveValue<T>(value: T | Promise<T>): Promise<T> {
-  return value instanceof Promise ? await value : value;
+  return await value;
 }
 
 // Keep track of processed results to prevent infinite loops

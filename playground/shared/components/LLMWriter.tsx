@@ -1,4 +1,4 @@
-import { createWorkflow } from "@/src/index";
+import { createWorkflow } from "@/src/utils/workflowBuilder";
 
 interface WriterProps {
   content: string;
@@ -14,9 +14,10 @@ interface WriterOutput {
 }
 
 export const LLMWriter = createWorkflow<WriterProps, WriterOutput>(
-  // eslint-disable-next-line @typescript-eslint/require-await
   async (props, render) => {
-    const processedContent = `Written content based on: ${props.content}`;
+    const processedContent = await Promise.resolve(
+      `Written content based on: ${props.content}`,
+    );
     const processedMetadata = {
       wordCount: processedContent.split(" ").length,
       readingTime: Math.ceil(processedContent.split(" ").length / 200),

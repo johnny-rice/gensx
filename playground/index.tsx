@@ -1,6 +1,6 @@
-import { Workflow } from "@/src/index";
-import { WorkflowContext } from "@/src/index";
-import { createWorkflowOutput } from "@/src/index";
+import { Workflow } from "@/src/components/Workflow";
+import { WorkflowContext } from "@/src/components/Workflow";
+import { createWorkflowOutput } from "@/src/hooks/useWorkflowOutput";
 
 import { BlogWritingWorkflow } from "./blog/BlogWritingWorkflow";
 import { TweetWritingWorkflow } from "./tweet/TweetWritingWorkflow";
@@ -35,15 +35,24 @@ async function runNestedWorkflow() {
   const title = "Programmatic Secrets with ESC";
   const prompt = "Write an article...";
 
+  let blogPost = "";
+  let tweet = "";
+
   const workflow = (
     <Workflow>
-      <BlogWritingWorkflow title={title} prompt={prompt}>
-        {blogPost => (
-          <TweetWritingWorkflow content={blogPost}>
-            {tweet => {
-              console.log("\n=== Nested Workflow Results ===");
-              console.log("Tweet:", tweet);
-              console.log("Blog Post:", blogPost);
+      <BlogWritingWorkflow
+        title={
+          new Promise(resolve => {
+            resolve(title);
+          })
+        }
+        prompt={prompt}
+      >
+        {blogPostResult => (
+          <TweetWritingWorkflow content={blogPostResult}>
+            {tweetResult => {
+              blogPost = blogPostResult;
+              tweet = tweetResult;
               return null;
             }}
           </TweetWritingWorkflow>
@@ -54,6 +63,10 @@ async function runNestedWorkflow() {
 
   const context = new WorkflowContext(workflow);
   await context.execute();
+
+  console.log("\n=== Nested Workflow Results ===");
+  console.log("Blog Post:", blogPost);
+  console.log("Tweet:", tweet);
 }
 
 async function main() {

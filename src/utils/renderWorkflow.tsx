@@ -60,6 +60,7 @@ export function renderWorkflow(element: React.ReactElement): Step[] {
                   await nestedStep.execute(context);
                 }
               }
+
               return [];
             },
           };

@@ -1,4 +1,4 @@
-import { createWorkflow } from "@/src/index";
+import { createWorkflow } from "@/src/utils/workflowBuilder";
 
 interface ResearcherProps {
   title: string;
@@ -12,10 +12,11 @@ interface ResearcherOutput {
 }
 
 export const LLMResearcher = createWorkflow<ResearcherProps, ResearcherOutput>(
-  // eslint-disable-next-line @typescript-eslint/require-await
   async (props, render) => {
     const result = {
-      research: `Research based on title: ${props.title}, prompt: ${props.prompt}`,
+      research: await Promise.resolve(
+        `Research based on title: ${props.title}, prompt: ${props.prompt}`,
+      ),
       sources: ["source1.com", "source2.com"],
       summary: "Brief summary of findings",
     };
