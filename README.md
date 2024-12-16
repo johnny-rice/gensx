@@ -1,4 +1,4 @@
-<h1 align="center">LLMX</h1>
+<h1 align="center">GenSX</h1>
 
 <p align="center">
   Make LLMs work good
@@ -6,11 +6,11 @@
 
 ## LLM + JSX = ⚡️
 
-LLMX is a library for building LLM workflows, using JSX for simple and fast development.
+GenSX is a library for building LLM workflows, using JSX for simple and fast development.
 
 ```jsx
 const title = "How to be a 10x LLM Developer";
-const prompt = "Write an article about using LLMX to build LLM applications";
+const prompt = "Write an article about using GenSX to build LLM applications";
 
 const workflow = (
   <Workflow>
@@ -36,11 +36,11 @@ await context.execute();
 ## 📦 Installing
 
 ```bash
-pnpm install llmx
+pnpm install gensx
 
-npm install llmx
+npm install gensx
 
-yarn add llmx
+yarn add gensx
 ```
 
 ## ⚙️ Developing

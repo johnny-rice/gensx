@@ -1,9 +1,7 @@
 {
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "always",
-        "source.removeUnusedImports": "always"
-    },
-    "cSpell.words": [
-        "llmx"
-    ]
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always",
+    "source.removeUnusedImports": "always"
+  },
+  "cSpell.words": ["gensx"]
 }

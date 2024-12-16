@@ -31,3 +31,6 @@
 - name: kind/duplicate
   description: This issue or pull request already exists
   color: 17202A
+- name: ignore-for-release
+  description: Ignore pull request for a new release
+  color: 9C28FC
