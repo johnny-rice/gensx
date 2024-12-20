@@ -9,28 +9,22 @@
 GenSX is a library for building LLM workflows, using JSX for simple and fast development.
 
 ```jsx
+import * as gsx from "gensx";
+
 const title = "How to be a 10x LLM Developer";
-const prompt = "Write an article about using GenSX to build LLM applications";
+const prompt = "Write an article about using gensx to build LLM applications";
 
-const workflow = (
-  <Workflow>
-    <BlogWritingWorkflow title={title} prompt={prompt}>
-      {blogPost => (
-        <TweetWritingWorkflow content={blogPost}>
-          {tweet => {
-            console.log("\n=== Nested Workflow Results ===");
-            console.log("Tweet:", tweet);
-            console.log("Blog Post:", blogPost);
-            return null;
-          }}
-        </TweetWritingWorkflow>
-      )}
-    </BlogWritingWorkflow>
-  </Workflow>
+const [tweet, blogPost] = await gsx.execute(
+  <BlogWritingWorkflow title={title} prompt={prompt}>
+    {blogPost => (
+      <TweetWritingWorkflow content={blogPost}>
+        {tweet => {
+          return [tweet, blogPost];
+        }}
+      </TweetWritingWorkflow>
+    )}
+  </BlogWritingWorkflow>,
 );
-
-const context = new WorkflowContext(workflow);
-await context.execute();
 ```
 
 ## 📦 Installing
