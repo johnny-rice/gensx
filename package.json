@@ -28,6 +28,7 @@
   "packageManager": "pnpm@9.14.2",
   "type": "module",
   "scripts": {
+    "build:watch": "pnpm build:clean && pnpm generate-dist --watch",
     "dev": "nodemon",
     "prepublishOnly": "pnpm i && pnpm build",
     "build": "pnpm validate-typescript && pnpm build:clean && pnpm generate-dist",
@@ -38,14 +39,12 @@
     "lint:fix": "eslint --ignore-path .gitignore . --ext .js,.ts --fix",
     "lint:file": "eslint --ignore-path .gitignore",
     "validate-typescript": "tsc -p tsconfig.prod.json --noEmit",
-    "generate-dist": "tsup src/index.ts --minify --tsconfig tsconfig.prod.json --dts --format cjs,esm --out-dir dist",
+    "generate-dist": "tsup src/index.ts --minify --tsconfig tsconfig.prod.json --dts --format cjs,esm --out-dir dist --entry.jsx-runtime=src/jsx-runtime.ts --entry.jsx-dev-runtime=src/jsx-dev-runtime.ts --entry.index=src/index.ts",
     "build:clean": "rimraf dist; exit 0",
     "prepare": "[ -f .husky/install.mjs ] && node .husky/install.mjs || true"
   },
   "dependencies": {
-    "openai": "^4.76.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "openai": "^4.76.0"
   },
   "devDependencies": {
     "@swc/cli": "^0.5.2",
@@ -53,7 +52,6 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.1",
-    "@types/react-dom": "^18.3.2",
     "@typescript-eslint/eslint-plugin": "^8.18.1",
     "@typescript-eslint/parser": "^8.18.1",
     "@vitest/coverage-istanbul": "^2.1.8",
@@ -94,6 +92,14 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./jsx-runtime": {
+      "import": "./dist/jsx-runtime.js",
+      "require": "./dist/jsx-runtime.cjs"
+    },
+    "./jsx-dev-runtime": {
+      "import": "./dist/jsx-dev-runtime.js",
+      "require": "./dist/jsx-dev-runtime.cjs"
     }
   }
 }
