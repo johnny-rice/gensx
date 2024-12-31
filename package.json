@@ -2,8 +2,8 @@
   "name": "gensx",
   "version": "0.1.1",
   "description": "Make LLMs work good",
-  "main": "dist/index.cjs",
-  "module": "lib/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "",
   "license": "MIT",
@@ -20,10 +20,10 @@
   "packageManager": "pnpm@9.14.2",
   "type": "module",
   "scripts": {
-    "build:watch": "pnpm build:clean && pnpm generate-dist --watch",
+    "build:watch": "pnpm build:clean && tsc -p tsconfig.prod.json --watch",
     "dev": "nodemon",
     "prepublishOnly": "pnpm i && pnpm build",
-    "build": "pnpm validate-typescript && pnpm build:clean && pnpm generate-dist",
+    "build": "pnpm validate-typescript && pnpm build:clean && pnpm build:dist",
     "test": "rimraf coverage && pnpm test:unit",
     "test:watch": "vitest",
     "test:unit": "vitest run --coverage",
@@ -31,8 +31,8 @@
     "lint:fix": "eslint --ignore-path .gitignore . --ext .js,.ts --fix",
     "lint:file": "eslint --ignore-path .gitignore",
     "validate-typescript": "tsc -p tsconfig.prod.json --noEmit",
-    "generate-dist": "tsup src/index.ts --minify --tsconfig tsconfig.prod.json --dts --format cjs,esm --out-dir dist --entry.jsx-runtime=src/jsx-runtime.ts --entry.jsx-dev-runtime=src/jsx-dev-runtime.ts --entry.index=src/index.ts",
-    "build:clean": "rimraf dist; exit 0",
+    "build:clean": "rimraf dist",
+    "build:dist": "tsc -p tsconfig.prod.json --outDir dist --declaration",
     "prepare": "[ -f .husky/install.mjs ] && node .husky/install.mjs || true"
   },
   "devDependencies": {
@@ -56,7 +56,6 @@
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
     "tsconfig-paths": "^4.2.0",
-    "tsup": "^8.3.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "unplugin-swc": "^1.5.1",
@@ -72,22 +71,19 @@
   ],
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
-      }
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./jsx-runtime": {
-      "import": "./dist/jsx-runtime.js",
-      "require": "./dist/jsx-runtime.cjs"
+      "types": "./dist/jsx-runtime.d.ts",
+      "default": "./dist/jsx-runtime.js"
     },
     "./jsx-dev-runtime": {
-      "import": "./dist/jsx-dev-runtime.js",
-      "require": "./dist/jsx-dev-runtime.cjs"
+      "types": "./dist/jsx-dev-runtime.d.ts",
+      "default": "./dist/jsx-dev-runtime.js"
     }
+  },
+  "dependencies": {
+    "openai": "^4.77.0"
   }
 }

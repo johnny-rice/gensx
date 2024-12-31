@@ -12,7 +12,19 @@
 7. Support parallel execution of steps (either dynamic via something liek a collector, or static via a few explicitly defined siblings)
  */
 
-import { Component } from "./component";
-import { execute } from "./gensx";
+import { Component, StreamComponent } from "./component";
+import { execute } from "./resolve";
+import { Streamable } from "./types";
 
-export { Component, execute };
+// Export everything through gsx namespace
+export const gsx = {
+  Component,
+  StreamComponent,
+  execute,
+};
+
+// Export Component and execute directly for use in type definitions
+export { Component, execute, StreamComponent };
+
+// Also export types
+export type { Streamable };

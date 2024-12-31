@@ -1,119 +1,102 @@
-import * as gsx from "@/index";
+import { gsx } from "@/index";
+import {
+  HNAnalyzerWorkflow,
+  HNAnalyzerWorkflowOutput,
+} from "./hackerNewsAnalyzer";
+import { BlogWritingWorkflow } from "./blogWriter";
+import { ChatCompletion } from "./chatCompletion";
+import fs from "fs/promises";
+import type { Streamable } from "@/types";
 
-interface LLMResearchBrainstormProps {
-  prompt: string;
-}
-type LLMResearchBrainstormOutput = string[];
-const LLMResearchBrainstorm = gsx.Component<
-  LLMResearchBrainstormProps,
-  LLMResearchBrainstormOutput
->(async ({ prompt }) => {
-  console.log("🔍 Starting research for:", prompt);
-  const topics = await Promise.resolve(["topic 1", "topic 2", "topic 3"]);
-  return topics;
-});
-
-interface LLMResearchProps {
-  topic: string;
-}
-type LLMResearchOutput = string;
-const LLMResearch = gsx.Component<LLMResearchProps, LLMResearchOutput>(
-  async ({ topic }) => {
-    console.log("📚 Researching topic:", topic);
-    return await Promise.resolve(`research results for ${topic}`);
-  },
-);
-
-interface LLMWriterProps {
-  research: string;
-  prompt: string;
-}
-type LLMWriterOutput = string;
-const LLMWriter = gsx.Component<LLMWriterProps, LLMWriterOutput>(
-  async ({ research, prompt }) => {
-    console.log("✍️  Writing draft based on research");
-    return await Promise.resolve(
-      `**draft\n${research}\n${prompt}\n**end draft`,
-    );
-  },
-);
-
-interface LLMEditorProps {
-  draft: string;
-}
-type LLMEditorOutput = string;
-const LLMEditor = gsx.Component<LLMEditorProps, LLMEditorOutput>(
-  async ({ draft }) => {
-    console.log("✨ Polishing final draft");
-    return await Promise.resolve(`edited result: ${draft}`);
-  },
-);
-
-interface WebResearcherProps {
-  prompt: string;
-}
-type WebResearcherOutput = string[];
-const WebResearcher = gsx.Component<WebResearcherProps, WebResearcherOutput>(
-  async ({ prompt }) => {
-    console.log("🌐 Researching web for:", prompt);
-    const results = await Promise.resolve([
-      "web result 1",
-      "web result 2",
-      "web result 3",
-    ]);
-    return results;
-  },
-);
-
-type ParallelResearchOutput = [string[], string[]];
-interface ParallelResearchComponentProps {
-  prompt: string;
-}
-const ParallelResearch = gsx.Component<
-  ParallelResearchComponentProps,
-  ParallelResearchOutput
->(({ prompt }) => (
-  <>
-    <LLMResearchBrainstorm prompt={prompt}>
-      {topics => topics.map(topic => <LLMResearch topic={topic} />)}
-    </LLMResearchBrainstorm>
-    <WebResearcher prompt={prompt} />
-  </>
-));
-
-interface BlogWritingWorkflowProps {
-  prompt: string;
-}
-type BlogWritingWorkflowOutput = string;
-const BlogWritingWorkflow = gsx.Component<
-  BlogWritingWorkflowProps,
-  BlogWritingWorkflowOutput
->(async ({ prompt }) => (
-  <ParallelResearch prompt={prompt}>
-    {([catalogResearch, webResearch]) => {
-      console.log("🧠 Research:", { catalogResearch, webResearch });
-      return (
-        <LLMWriter
-          research={[catalogResearch.join("\n"), webResearch.join("\n")].join(
-            "\n\n",
-          )}
-          prompt={prompt}
-        >
-          {draft => <LLMEditor draft={draft} />}
-        </LLMWriter>
-      );
-    }}
-  </ParallelResearch>
-));
-
-async function main() {
-  console.log("🚀 Starting blog writing workflow");
-
-  // Use the gensx function to execute the workflow and annotate with the output type.
+// Example 1: Simple blog writing workflow
+async function runBlogWritingExample() {
+  console.log("\n🚀 Starting blog writing workflow");
   const result = await gsx.execute<string>(
     <BlogWritingWorkflow prompt="Write a blog post about the future of AI" />,
   );
-  console.log("✅ Final result:", { result });
+  console.log("✅ Blog writing complete:", { result });
 }
 
-await main();
+// Example 2: HN analysis workflow with parallel execution
+async function runHNAnalysisExample() {
+  console.log("\n🚀 Starting HN analysis workflow...");
+  const { report, tweet } = await gsx.execute<HNAnalyzerWorkflowOutput>(
+    <HNAnalyzerWorkflow postCount={500} />,
+  );
+
+  // Write outputs to files
+  await fs.writeFile("hn_analysis_report.md", report);
+  await fs.writeFile("hn_analysis_tweet.txt", tweet);
+  console.log(
+    "✅ Analysis complete! Check hn_analysis_report.md and hn_analysis_tweet.txt",
+  );
+}
+
+// Example 3: Streaming vs non-streaming chat completion
+async function runStreamingWithChildrenExample() {
+  const prompt =
+    "Write a 250 word story about an AI that discovers the meaning of friendship through a series of small interactions with humans. Be concise but meaningful.";
+
+  console.log("\n🚀 Starting streaming example with prompt:", prompt);
+
+  console.log("\n📝 Non-streaming version (waiting for full response):");
+  await gsx.execute<string>(
+    <ChatCompletion prompt={prompt}>
+      {async (response: string) => {
+        console.log(response);
+      }}
+    </ChatCompletion>,
+  );
+
+  console.log("\n📝 Streaming version (processing tokens as they arrive):");
+  await gsx.execute(
+    <ChatCompletion stream={true} prompt={prompt}>
+      {async (response: Streamable<string>) => {
+        // Print tokens as they arrive
+        for await (const token of {
+          [Symbol.asyncIterator]: () => response.stream(),
+        }) {
+          process.stdout.write(token);
+        }
+        process.stdout.write("\n");
+        console.log("✅ Streaming complete");
+      }}
+    </ChatCompletion>,
+  );
+}
+
+async function runStreamingExample() {
+  const prompt =
+    "Write a 250 word story about an AI that discovers the meaning of friendship through a series of small interactions with humans. Be concise but meaningful.";
+
+  console.log("\n🚀 Starting streaming example with prompt:", prompt);
+
+  console.log("\n📝 Non-streaming version (waiting for full response):");
+  const finalResult = await gsx.execute<string>(
+    <ChatCompletion prompt={prompt} />,
+  );
+  console.log("✅ Complete response:", finalResult);
+
+  console.log("\n📝 Streaming version (processing tokens as they arrive):");
+  const response = await gsx.execute<Streamable<string>>(
+    <ChatCompletion stream={true} prompt={prompt} />,
+  );
+
+  for await (const token of {
+    [Symbol.asyncIterator]: () => response.stream(),
+  }) {
+    process.stdout.write(token);
+  }
+  process.stdout.write("\n");
+  console.log("✅ Streaming complete");
+}
+
+// Main function to run examples
+async function main() {
+  await runBlogWritingExample();
+  await runHNAnalysisExample();
+  await runStreamingWithChildrenExample();
+  await runStreamingExample();
+}
+
+main().catch(console.error);
