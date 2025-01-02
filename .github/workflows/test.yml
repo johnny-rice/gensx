@@ -1,0 +1,49 @@
+name: "🐢 Lint and Test"
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths:
+      - "packages/**/*"
+  push:
+    branches: [main]
+    paths:
+      - "packages/**/*"
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Important security check for pull_request_target
+    if: |
+      (github.event_name == 'push') ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name == github.repository)
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22.x, 20.x, 18.x]
+
+    steps:
+      - name: Checkout 🛬
+        uses: actions/checkout@v4
+        with:
+          # Important: For PR events, explicitly checkout the PR HEAD
+          ref: ${{ github.event_name == 'pull_request_target' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+          persist-credentials: false
+      - name: Setup Node ⚙️
+        uses: ./.github/actions/setup-node
+        with:
+          version: ${{ matrix.node-version }}
+          npm_token: ${{ secrets.NPM_TOKEN }}
+      - name: Build 📦
+        run: pnpm build
+      - name: Lint code 💅
+        run: pnpm lint
+      - name: Run tests ✅
+        run: pnpm test

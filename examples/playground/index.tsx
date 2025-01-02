@@ -1,12 +1,12 @@
-import { gsx } from "@/index";
+import fs from "fs/promises";
+import { gsx, Streamable } from "gensx";
+
+import { BlogWritingWorkflow } from "./blogWriter.js";
+import { ChatCompletion } from "./chatCompletion.js";
 import {
   HNAnalyzerWorkflow,
   HNAnalyzerWorkflowOutput,
-} from "./hackerNewsAnalyzer";
-import { BlogWritingWorkflow } from "./blogWriter";
-import { ChatCompletion } from "./chatCompletion";
-import fs from "fs/promises";
-import type { Streamable } from "@/types";
+} from "./hackerNewsAnalyzer.js";
 
 // Example 1: Simple blog writing workflow
 async function runBlogWritingExample() {

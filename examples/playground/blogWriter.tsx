@@ -1,4 +1,4 @@
-import * as gsx from "@/index";
+import { gsx } from "gensx";
 
 interface LLMResearchBrainstormProps {
   prompt: string;
@@ -75,7 +75,7 @@ const ParallelResearch = gsx.Component<
 >(({ prompt }) => (
   <>
     <LLMResearchBrainstorm prompt={prompt}>
-      {topics => topics.map(topic => <LLMResearch topic={topic} />)}
+      {(topics) => topics.map((topic) => <LLMResearch topic={topic} />)}
     </LLMResearchBrainstorm>
     <WebResearcher prompt={prompt} />
   </>
@@ -99,7 +99,7 @@ export const BlogWritingWorkflow = gsx.Component<
           )}
           prompt={prompt}
         >
-          {draft => <LLMEditor draft={draft} />}
+          {(draft) => <LLMEditor draft={draft} />}
         </LLMWriter>
       );
     }}
