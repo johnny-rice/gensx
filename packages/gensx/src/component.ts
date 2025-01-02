@@ -2,8 +2,8 @@ import type {
   ComponentProps,
   MaybePromise,
   Streamable,
-  StreamComponent,
   StreamComponentProps,
+  StreamingComponent,
   WorkflowComponent,
 } from "./types";
 
@@ -23,21 +23,29 @@ export function Component<P, O>(
     });
   }
 
-  // Mark as workflow component and JSX element type
   const component = GsxComponent as WorkflowComponent<P, O>;
-
   return component;
 }
 
-export function StreamComponent<P, O>(
-  fn: (props: P) => MaybePromise<Streamable<O>>,
-): StreamComponent<P, O> {
-  function GsxStreamComponent(
-    props: StreamComponentProps<P, O>,
-  ): MaybePromise<Streamable<O>> {
-    return withContext({ streaming: props.stream ?? false }, async () =>
-      Promise.resolve(fn(props)),
-    );
+export function StreamComponent<P>(
+  fn: (
+    props: P,
+  ) => MaybePromise<Streamable | AsyncGenerator<string> | Generator<string>>,
+): StreamingComponent<P, boolean> {
+  function GsxStreamComponent<Stream extends boolean = false>(
+    props: StreamComponentProps<P, Stream>,
+  ): MaybePromise<Stream extends true ? Streamable : string> {
+    return withContext({ streaming: props.stream ?? false }, async () => {
+      const iterator = await Promise.resolve(fn(props));
+      if (props.stream) {
+        return iterator as Stream extends true ? Streamable : string;
+      }
+      let result = "";
+      for await (const token of iterator) {
+        result += token;
+      }
+      return result as Stream extends true ? Streamable : string;
+    });
   }
 
   if (fn.name) {
@@ -46,9 +54,6 @@ export function StreamComponent<P, O>(
     });
   }
 
-  // Mark as stream component
-  const component = GsxStreamComponent as StreamComponent<P, O>;
-  component.isStreamComponent = true;
-
+  const component = GsxStreamComponent as StreamingComponent<P, boolean>;
   return component;
 }
