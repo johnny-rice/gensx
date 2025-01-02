@@ -1,36 +1,6 @@
-import fs from "fs/promises";
 import { gsx, Streamable } from "gensx";
 
-import { BlogWritingWorkflow } from "./blogWriter.js";
 import { ChatCompletion } from "./chatCompletion.js";
-import {
-  HNAnalyzerWorkflow,
-  HNAnalyzerWorkflowOutput,
-} from "./hackerNewsAnalyzer.js";
-
-// Example 1: Simple blog writing workflow
-async function runBlogWritingExample() {
-  console.log("\n🚀 Starting blog writing workflow");
-  const result = await gsx.execute<string>(
-    <BlogWritingWorkflow prompt="Write a blog post about the future of AI" />,
-  );
-  console.log("✅ Blog writing complete:", { result });
-}
-
-// Example 2: HN analysis workflow with parallel execution
-async function runHNAnalysisExample() {
-  console.log("\n🚀 Starting HN analysis workflow...");
-  const { report, tweet } = await gsx.execute<HNAnalyzerWorkflowOutput>(
-    <HNAnalyzerWorkflow postCount={500} />,
-  );
-
-  // Write outputs to files
-  await fs.writeFile("hn_analysis_report.md", report);
-  await fs.writeFile("hn_analysis_tweet.txt", tweet);
-  console.log(
-    "✅ Analysis complete! Check hn_analysis_report.md and hn_analysis_tweet.txt",
-  );
-}
 
 // Example 3: Streaming vs non-streaming chat completion
 async function runStreamingWithChildrenExample() {
@@ -93,8 +63,6 @@ async function runStreamingExample() {
 
 // Main function to run examples
 async function main() {
-  await runBlogWritingExample();
-  await runHNAnalysisExample();
   await runStreamingWithChildrenExample();
   await runStreamingExample();
 }
