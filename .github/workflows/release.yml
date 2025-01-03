@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "packages/**/*"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - ".release-please-manifest.json"
-      - "release-please-config.json"
 
 # Ensure this workflow has the necessary permissions
 permissions:
@@ -33,12 +27,15 @@ jobs:
           token: ${{ secrets.PAT_GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      # The following steps only run when merging a release PR
       - name: Checkout 🛬
         if: ${{ steps.release.outputs.releases_created }}
         uses: actions/checkout@v4
         with:
           persist-credentials: false
           fetch-depth: 0
+
       - name: Create package-specific tags 🏷️
         if: ${{ steps.release.outputs.releases_created }}
         run: |
@@ -52,35 +49,35 @@ jobs:
             git tag "@gensx/openai@${{ steps.release.outputs['packages/gensx-openai--version'] }}"
             git push origin "@gensx/openai@${{ steps.release.outputs['packages/gensx-openai--version'] }}"
           fi
+
       - name: Setup Node ⚙️
         if: ${{ steps.release.outputs.releases_created }}
         uses: ./.github/actions/setup-node
         with:
           npm_token: ${{ secrets.NPM_TOKEN }}
-      - name: Cache turbo build setup
-        if: ${{ steps.release.outputs.releases_created }}
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
+
       - name: Build Packages 🏗️
         if: ${{ steps.release.outputs.releases_created }}
         run: |
           pnpm install --frozen-lockfile
           pnpm turbo run build
+
       - name: Publish to NPM 🚀
         if: ${{ steps.release.outputs.releases_created }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
         run: |
-          for pkg in $(pnpm recursive list --only-projects --json | jq -r '.[].name'); do
-            if [[ "$pkg" != "@gensx-examples/"* ]]; then
-              echo "Publishing $pkg"
-              cd "packages/$(echo $pkg | sed 's/@gensx\///')"
-              pnpm publish --no-git-checks --access public
-              cd ../..
-            fi
-          done
+          # Only publish packages that had releases created
+          if [[ "${{ steps.release.outputs.gensx--release_created }}" == "true" ]]; then
+            echo "Publishing gensx"
+            cd packages/gensx
+            pnpm publish --no-git-checks --access public
+            cd ../..
+          fi
+          if [[ "${{ steps.release.outputs['packages/gensx-openai--release_created'] }}" == "true" ]]; then
+            echo "Publishing @gensx/openai"
+            cd packages/gensx-openai
+            pnpm publish --no-git-checks --access public
+            cd ../..
+          fi
