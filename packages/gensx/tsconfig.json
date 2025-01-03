@@ -4,9 +4,7 @@
     "target": "esnext",
     "useDefineForClassFields": true,
     "module": "esnext",
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "tsBuildInfoFile": ".tsbuildinfo",
     "incremental": true,
     "skipLibCheck": true,
@@ -29,25 +27,11 @@
     "jsxImportSource": "@",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@/tests/*": [
-        "tests/*"
-      ]
+      "@/*": ["src/*"],
+      "@/tests/*": ["tests/*"]
     },
-    "types": [
-      "vitest/globals"
-    ]
+    "types": ["vitest/globals"]
   },
-  "include": [
-    "src/**/*",
-    "tests/**/*",
-    "vitest.config.ts",
-    "vite.config.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*", "tests/**/*", "vitest.config.ts", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

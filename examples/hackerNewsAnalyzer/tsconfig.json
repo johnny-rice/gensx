@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "NodeNext",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
+    "lib": ["ESNext", "DOM"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -17,13 +14,6 @@
     "jsxImportSource": "gensx",
     "outDir": "./dist"
   },
-  "include": [
-    "./*.ts",
-    "./*.tsx",
-    "./**/*.ts",
-    "./**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["./*.ts", "./*.tsx", "./**/*.ts", "./**/*.tsx"],
+  "exclude": ["node_modules"]
 }
