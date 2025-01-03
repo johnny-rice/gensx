@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 # Ensure this workflow has the necessary permissions
 permissions:
