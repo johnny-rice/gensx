@@ -48,7 +48,7 @@ jobs:
       - name: Run tests with coverage 📊
         id: coverage
         run: |
-          OUTPUT=$(pnpm test --coverage)
+          OUTPUT=$(pnpm test)
           COVERAGE_REPORT=$(echo "$OUTPUT" | grep -A 10 "^--------------------|---------|----------|---------|---------|-------------------$")
           COVERAGE_REPORT="${COVERAGE_REPORT//'%'/'%25'}"
           COVERAGE_REPORT="${COVERAGE_REPORT//$'\n'/'%0A'}"
