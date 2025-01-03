@@ -5,6 +5,7 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig(({ command }) => ({
   build: {
+    sourcemap: true,
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       formats: ["es"],
@@ -15,5 +16,11 @@ export default defineConfig(({ command }) => ({
     },
     watch: command === "serve" ? {} : undefined,
   },
-  plugins: [dts()],
+  plugins: [
+    dts({
+      include: ["src"],
+      outDir: "dist",
+      rollupTypes: true,
+    }),
+  ],
 }));

@@ -1,10 +1,5 @@
-export interface WorkflowContext {
-  streaming?: boolean;
-  hadStreaming?: boolean; // Track if this context or any child ever had streaming
-  // Reserved for future contexts:
-  trace?: unknown;
-  transaction?: unknown;
-}
+import { resolveDeep } from "./resolve";
+import { ExecutableValue, type WorkflowContext } from "./types";
 
 export class ExecutionContext {
   constructor(
@@ -89,14 +84,16 @@ export function setCurrentContext(context: ExecutionContext): void {
 // Helper to run code with a specific context
 export async function withContext<T>(
   context: Partial<WorkflowContext>,
-  fn: () => Promise<T>,
+  fn: ExecutableValue,
 ): Promise<T> {
   const prevContext = getCurrentContext();
-  const newContext = prevContext.withContext(context);
-  setCurrentContext(newContext);
+  if (Object.keys(context).length > 0) {
+    const newContext = prevContext.withContext(context);
+    setCurrentContext(newContext);
+  }
   try {
-    const result = await fn();
-    return result;
+    const result = await resolveDeep(fn);
+    return result as T;
   } finally {
     setCurrentContext(prevContext);
   }

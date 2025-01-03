@@ -5,16 +5,75 @@ import type {
   StreamComponentProps,
   StreamingComponent,
   WorkflowComponent,
+  WorkflowContext,
 } from "./types";
 
 import { withContext } from "./context";
 import { JSX } from "./jsx-runtime";
+import { resolveDeep } from "./resolve";
+
+// TODO: We execute the children inside the component wrappers in order to execute the children within the correct context.
+// This also requires that the Component/StreamComponent/ContextProvider wrappers return functions, instead of just the promises.
+// It's not the cleanest thing, and we might be able to simplify this if we migrate to AsyncLocalStorage for context instead.
+
+/**
+ * This allows an element to return either a plain object or an object with JSX.Element children
+ * This is useful for components that return a nested object structure, where each key can be a component
+ * that returns a plain object or an object with JSX.Element children.
+ *
+ * For example:
+ *
+ * interface ComponentOutput {
+ *   nested: {
+ *     foo: string;
+ *     bar: string;
+ *   }[];
+ * }
+ *
+ * interface ComponentProps {
+ *   input: string;
+ * }
+ *
+ * const Component = gsx.Component<ComponentProps, ComponentOutput>(
+ *   ({ input }) => ({
+ *     nested: [
+ *       { foo: <Foo input={input} />, bar: <Bar input={input} /> },
+ *       { foo: <Foo />, bar: <Bar /> },
+ *     ],
+ *   }),
+ * );
+ */
+type DeepJSXElement<T> = T extends (infer Item)[]
+  ? DeepJSXElement<Item>[]
+  : T extends object
+    ? { [K in keyof T]: DeepJSXElement<T[K]> }
+    : T | JSX.Element;
 
 export function Component<P, O>(
-  fn: (props: P) => MaybePromise<O | JSX.Element | JSX.Element[]>,
+  fn: (
+    props: P,
+  ) => MaybePromise<
+    | O
+    | JSX.Element
+    | JSX.Element[]
+    | Record<string, JSX.Element>
+    | DeepJSXElement<O>
+  >,
 ): WorkflowComponent<P, O> {
-  function GsxComponent(props: ComponentProps<P, O>): MaybePromise<O> {
-    return Promise.resolve(fn(props)) as Promise<O>;
+  function GsxComponent(props: ComponentProps<P, O>): () => Promise<O> {
+    return async () => {
+      const result = await resolveDeep(fn(props));
+
+      let finalResult: O;
+      if (props.children) {
+        finalResult = await withContext({}, () =>
+          props.children?.(result as O),
+        );
+      } else {
+        finalResult = result as O; // TODO: Extract type information from children.
+      }
+      return finalResult;
+    };
   }
 
   if (fn.name) {
@@ -23,29 +82,38 @@ export function Component<P, O>(
     });
   }
 
-  const component = GsxComponent as WorkflowComponent<P, O>;
+  const component = GsxComponent;
   return component;
 }
 
 export function StreamComponent<P>(
-  fn: (
-    props: P,
-  ) => MaybePromise<Streamable | AsyncGenerator<string> | Generator<string>>,
+  fn: (props: P) => MaybePromise<Streamable | JSX.Element>, // It does not make sense to stream from more than one child element
 ): StreamingComponent<P, boolean> {
   function GsxStreamComponent<Stream extends boolean = false>(
     props: StreamComponentProps<P, Stream>,
-  ): MaybePromise<Stream extends true ? Streamable : string> {
-    return withContext({ streaming: props.stream ?? false }, async () => {
-      const iterator = await Promise.resolve(fn(props));
+  ): () => Promise<Stream extends true ? Streamable : string> {
+    return async () => {
+      const iterator: Streamable = await resolveDeep(fn(props));
       if (props.stream) {
+        if (props.children) {
+          return withContext({}, () =>
+            props.children?.(iterator as unknown as Streamable & string),
+          );
+        }
         return iterator as Stream extends true ? Streamable : string;
       }
+
       let result = "";
       for await (const token of iterator) {
         result += token;
       }
+      if (props.children) {
+        return withContext({}, () =>
+          props.children?.(result as unknown as Streamable & string),
+        );
+      }
       return result as Stream extends true ? Streamable : string;
-    });
+    };
   }
 
   if (fn.name) {
@@ -54,6 +122,33 @@ export function StreamComponent<P>(
     });
   }
 
-  const component = GsxStreamComponent as StreamingComponent<P, boolean>;
+  const component = GsxStreamComponent;
+  return component;
+}
+
+export function ContextProvider<P, C extends Partial<WorkflowContext>>(
+  fn: (props: P) => MaybePromise<C>,
+): WorkflowComponent<P, never> {
+  function GsxContextProvider(
+    props: ComponentProps<P, never>,
+  ): () => Promise<never> {
+    return async () => {
+      const context = await fn(props);
+      const children = props.children;
+      if (!children) {
+        console.warn("Provider has no children");
+        return null as never;
+      }
+      return withContext(context, () => children(null as never));
+    };
+  }
+
+  if (fn.name) {
+    Object.defineProperty(GsxContextProvider, "name", {
+      value: `GsxContextProvider[${fn.name}]`,
+    });
+  }
+
+  const component = GsxContextProvider;
   return component;
 }
