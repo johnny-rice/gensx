@@ -58,6 +58,7 @@ export function Component<P, O>(
     | JSX.Element[]
     | Record<string, JSX.Element>
     | DeepJSXElement<O>
+    | undefined
   >,
 ): WorkflowComponent<P, O> {
   function GsxComponent(props: ComponentProps<P, O>): () => Promise<O> {
