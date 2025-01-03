@@ -30,9 +30,16 @@ export default defineConfig({
     env: loadEnv("test", process.cwd(), ""),
     coverage: {
       provider: "istanbul",
-      reporter: ["text", "text-summary", "json", "html"],
+      reporter: ["text-summary", "json-summary", "json"],
       reportsDirectory: "coverage",
       include: ["src/**/*.ts", "src/**/*.tsx"],
+      all: true,
+      enabled: true,
+      clean: true,
+      cleanOnRerun: true,
+      reportOnFailure: true,
+      skipFull: false,
+      extension: [".ts", ".tsx"],
     },
   },
   // TODO: Get swc working to speed things up
