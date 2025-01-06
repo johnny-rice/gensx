@@ -1,12 +1,10 @@
 // @ts-check
-import cloudflare from "@astrojs/cloudflare";
 import starlight from "@astrojs/starlight";
 import tailwind from "@astrojs/tailwind";
 import { defineConfig } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
-  output: "server",
   integrations: [
     tailwind(),
     starlight({
@@ -22,13 +20,7 @@ export default defineConfig({
       //   editLink: {
       //     baseUrl: "https://github.com/cortexclick/gensx/edit/main/docs/",
       //   },
-      // TODO: Enable the search bar when we have some content.
-      pagefind: false,
-      customCss: [
-        "./src/tailwind.css",
-        // TODO: Remove this once we want links and the search bar and stuff.
-        "./src/styles/hideHeader.css",
-      ],
+      customCss: ["./src/tailwind.css"],
       sidebar: [
         // Commented out for future use
         /*
@@ -49,9 +41,9 @@ export default defineConfig({
       applyBaseStyles: false,
     }),
   ],
-  adapter: cloudflare({
-    imageService: "cloudflare",
-  }),
+  //   adapter: cloudflare({
+  //     imageService: "compile",
+  //   }),
   vite: {
     ssr: {
       external: ["node:buffer", "node:path", "node:url"],
