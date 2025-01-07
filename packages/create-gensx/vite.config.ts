@@ -7,9 +7,12 @@ export default defineConfig(({ command }) => ({
   build: {
     sourcemap: true,
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: {
+        index: resolve(__dirname, "src/index.ts"),
+        cli: resolve(__dirname, "src/cli.ts"),
+      },
       formats: ["es"],
-      fileName: () => "index.js",
+      fileName: (_, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
       external: (id) => !id.startsWith(".") && !id.startsWith("/"),
@@ -18,7 +21,6 @@ export default defineConfig(({ command }) => ({
   },
   plugins: [
     dts({
-      include: ["src"],
       outDir: "dist",
       rollupTypes: true,
     }),

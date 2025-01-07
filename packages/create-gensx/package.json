@@ -8,10 +8,13 @@
   "bin": {
     "create-gensx": "./dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "vite build",
     "clean": "rm -rf dist",
-    "dev": "tsc --watch",
+    "dev": "vite build --watch",
     "test": "vitest"
   },
   "dependencies": {
