@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import { fileURLToPath } from "url";
-
 import { Command } from "commander";
 
 import { createGensxProject, CreateOptions } from "./index.js";
@@ -27,10 +25,7 @@ export async function runCLI() {
   await program.parseAsync();
 }
 
-// Only run CLI when this file is being executed directly
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  runCLI().catch((error) => {
-    console.error("Error:", error);
-    process.exit(1);
-  });
-}
+runCLI().catch((error) => {
+  console.error("Error:", error);
+  process.exit(1);
+});
