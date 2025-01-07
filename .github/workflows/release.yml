@@ -37,20 +37,6 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Create package-specific tags 🏷️
-        if: ${{ steps.release.outputs.releases_created }}
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          if [[ "${{ steps.release.outputs.gensx--release_created }}" == "true" ]]; then
-            git tag "gensx@${{ steps.release.outputs.gensx--version }}"
-            git push origin "gensx@${{ steps.release.outputs.gensx--version }}"
-          fi
-          if [[ "${{ steps.release.outputs['packages/gensx-openai--release_created'] }}" == "true" ]]; then
-            git tag "@gensx/openai@${{ steps.release.outputs['packages/gensx-openai--version'] }}"
-            git push origin "@gensx/openai@${{ steps.release.outputs['packages/gensx-openai--version'] }}"
-          fi
-
       - name: Setup Node ⚙️
         if: ${{ steps.release.outputs.releases_created }}
         uses: ./.github/actions/setup-node
