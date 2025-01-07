@@ -18,7 +18,7 @@ importers:
         specifier: ^6.0.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.7.2)
       eslint:
-        specifier: ^8.0.0
+        specifier: ^8.57.0
         version: 8.57.1
       eslint-config-prettier:
         specifier: ^9.0.0
@@ -79,7 +79,7 @@ importers:
         specifier: ^6.0.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.7.2)
       eslint:
-        specifier: ^8.0.0
+        specifier: ^8.57.0
         version: 8.57.1
       tailwindcss:
         specifier: ^3.4.17
@@ -113,7 +113,7 @@ importers:
         specifier: ^6.0.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.7.2)
       eslint:
-        specifier: ^8.0.0
+        specifier: ^8.57.0
         version: 8.57.1
       nodemon:
         specifier: ^3.1.9
@@ -150,7 +150,7 @@ importers:
         specifier: ^6.0.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.7.2)
       eslint:
-        specifier: ^8.0.0
+        specifier: ^8.57.0
         version: 8.57.1
       nodemon:
         specifier: ^3.1.9
@@ -190,7 +190,7 @@ importers:
         specifier: ^6.0.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.7.2)
       eslint:
-        specifier: ^8.0.0
+        specifier: ^8.57.0
         version: 8.57.1
       nodemon:
         specifier: ^3.1.9
@@ -217,6 +217,9 @@ importers:
       '@vitest/coverage-istanbul':
         specifier: ^2.1.8
         version: 2.1.8(vitest@2.1.8(@types/node@20.17.11))
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.1
       typescript:
         specifier: ^5.7.2
         version: 5.7.2
@@ -238,6 +241,9 @@ importers:
       '@vitest/coverage-istanbul':
         specifier: ^2.1.8
         version: 2.1.8(vitest@2.1.8(@types/node@20.17.11))
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.1
       typescript:
         specifier: ^5.7.2
         version: 5.7.2
@@ -259,6 +265,9 @@ importers:
       '@vitest/coverage-istanbul':
         specifier: ^2.1.8
         version: 2.1.8(vitest@2.1.8(@types/node@20.17.11))
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.1
       gensx:
         specifier: workspace:*
         version: link:../gensx
