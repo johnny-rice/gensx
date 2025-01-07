@@ -22,9 +22,11 @@
     "commander": "^11.1.0"
   },
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.0.0",
     "@vitest/coverage-istanbul": "^2.1.8",
     "eslint": "^8.57.0",
+    "fs-extra": "^11.2.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.7",
     "vite-plugin-dts": "^3.0.0",

@@ -2,6 +2,7 @@ import { resolve } from "path";
 
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import fs from "fs-extra";
 
 export default defineConfig(({ command }) => ({
   build: {
@@ -24,5 +25,16 @@ export default defineConfig(({ command }) => ({
       outDir: "dist",
       rollupTypes: true,
     }),
+    {
+      name: "copy-templates",
+      // copy templates to dist on build start for the pnpm dev case
+      async buildStart() {
+        await fs.copy(resolve(__dirname, "src/templates"), "dist/templates");
+      },
+      // copy templates to dist on build end for the pnpm build case
+      async closeBundle() {
+        await fs.copy(resolve(__dirname, "src/templates"), "dist/templates");
+      },
+    },
   ],
 }));
