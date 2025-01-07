@@ -67,6 +67,6 @@ jobs:
         if: ${{ steps.release.outputs.releases_created }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true"
+          # NPM_CONFIG_PROVENANCE: "true" # Enable once the repo is public
         run: |
           pnpm publish --no-git-checks --access public -r
