@@ -31,26 +31,26 @@ jobs:
 
       # The following steps only run when merging a release PR
       - name: Checkout 🛬
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         uses: actions/checkout@v4
         with:
           persist-credentials: false
           fetch-depth: 0
 
       - name: Setup Node ⚙️
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         uses: ./.github/actions/setup-node
         with:
           npm_token: ${{ secrets.NPM_TOKEN }}
 
       - name: Build Packages 🏗️
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         run: |
           pnpm install --frozen-lockfile
           pnpm turbo run build
 
       - name: Publish to NPM 🚀
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           # NPM_CONFIG_PROVENANCE: "true" # Enable once the repo is public

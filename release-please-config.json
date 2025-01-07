@@ -54,7 +54,6 @@
       "prerelease": false,
       "include-component-in-tag": true,
       "include-v-in-tag": true,
-      "bootstrap-sha": "53b7ee076660b2fefa268aed139a212a686437ac",
       "initial-version": "0.1.0",
       "extra-files": [
         {

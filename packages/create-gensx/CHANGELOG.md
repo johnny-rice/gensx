@@ -2,4 +2,4 @@
 
 ## 0.0.0 (Initial Release)
 
-- Initial release of @gensx/openai
+- Initial release of create-gensx
