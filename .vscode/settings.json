@@ -12,5 +12,7 @@
     "typescriptreact"
   ],
   "cSpell.words": ["gensx", "jsxs", "Streamable"],
-  "eslint.useFlatConfig": true
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
