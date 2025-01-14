@@ -1,3 +1,4 @@
+import { ExecutionContext } from "./context";
 import { JSX } from "./jsx-runtime";
 
 export type MaybePromise<T> = T | Promise<T>;
@@ -64,9 +65,9 @@ export type StreamingComponent<P, Stream extends boolean | undefined> = (
   props: StreamComponentProps<P, Stream>,
 ) => () => Promise<Stream extends true ? Streamable : string>;
 
-// Extensible workflow context
-export interface WorkflowContext {
-  trace?: unknown;
-  transaction?: unknown;
-  [key: string]: unknown;
+export interface Context<T> {
+  readonly __type: "Context";
+  readonly defaultValue: T;
+  readonly symbol: symbol;
+  Provider: WorkflowComponent<{ value: T }, ExecutionContext>;
 }

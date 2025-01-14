@@ -1,5 +1,7 @@
 import { setTimeout } from "timers/promises";
 
+import { expect, suite, test } from "vitest";
+
 import { gsx } from "@/index";
 
 suite("gensx", () => {
@@ -104,14 +106,14 @@ suite("gensx", () => {
 
   test("returns results from a fragment", async () => {
     const Doubler = gsx.Component<{ input: string }, string>(
-      async ({ input }) => {
+      async function Doubler({ input }) {
         await setTimeout(0);
         return `${input}${input}`;
       },
     );
 
     const Component = gsx.Component<{ input: string }, string>(
-      async ({ input }) => {
+      async function Component({ input }) {
         await setTimeout(0);
         return <Doubler input={input} />;
       },
