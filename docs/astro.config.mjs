@@ -5,6 +5,7 @@ import { defineConfig } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://gensx.dev",
   integrations: [
     tailwind(),
     starlight({
@@ -24,10 +25,9 @@ export default defineConfig({
         themes: ["light-plus", "dark-plus"],
         useStarlightDarkModeSwitch: false,
       },
-      // TODO: Enable the edit link when we have some content.
-      //   editLink: {
-      //     baseUrl: "https://github.com/cortexclick/gensx/edit/main/docs/",
-      //   },
+      editLink: {
+        baseUrl: "https://github.com/cortexclick/gensx/edit/main/docs/",
+      },
       customCss: ["./src/tailwind.css"],
       sidebar: [
         {
@@ -65,9 +65,9 @@ export default defineConfig({
       applyBaseStyles: false,
     }),
   ],
-  //   adapter: cloudflare({
-  //     imageService: "compile",
-  //   }),
+  // adapter: cloudflare({
+  //   imageService: "compile",
+  // }),
   vite: {
     ssr: {
       external: ["node:buffer", "node:path", "node:url"],
