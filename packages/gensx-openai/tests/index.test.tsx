@@ -51,7 +51,7 @@ suite("OpenAIContext", () => {
   test("provides OpenAI client to children", async () => {
     let capturedClient: OpenAI | undefined;
 
-    const TestComponent = gsx.Component(() => {
+    const TestComponent = gsx.Component<{}, null>("TestComponent", () => {
       const context = gsx.useContext(OpenAIContext);
       capturedClient = context.client;
       return null;
@@ -67,7 +67,7 @@ suite("OpenAIContext", () => {
   });
 
   test("throws error when client is not provided", async () => {
-    const TestComponent = gsx.Component(() => (
+    const TestComponent = gsx.Component<{}, string>("TestComponent", () => (
       <ChatCompletion
         model="gpt-4"
         messages={[{ role: "user", content: "test" }]}
@@ -82,7 +82,7 @@ suite("OpenAIContext", () => {
   test("can provide a custom client", async () => {
     const customClient = new OpenAI({ apiKey: "test" });
 
-    const TestComponent = gsx.Component(() => {
+    const TestComponent = gsx.Component<{}, null>("TestComponent", () => {
       const context = gsx.useContext(OpenAIContext);
       expect(context.client).toBe(customClient);
       return null;
@@ -98,17 +98,15 @@ suite("OpenAIContext", () => {
 
 suite("ChatCompletion", () => {
   test("handles streaming response", async () => {
-    const TestComponent = gsx.Component<Record<string, never>, Streamable>(
-      () => (
-        <ChatCompletion
-          stream={true}
-          model="gpt-4"
-          messages={[{ role: "user", content: "test" }]}
-        >
-          {(completion: string) => completion}
-        </ChatCompletion>
-      ),
-    );
+    const TestComponent = gsx.StreamComponent<{}>("TestComponent", () => (
+      <ChatCompletion
+        stream={true}
+        model="gpt-4"
+        messages={[{ role: "user", content: "test" }]}
+      >
+        {(completion: string) => completion}
+      </ChatCompletion>
+    ));
 
     const result = await gsx.execute<Streamable>(
       <OpenAIProvider apiKey="test">
@@ -125,7 +123,7 @@ suite("ChatCompletion", () => {
   });
 
   test("handles non-streaming response", async () => {
-    const TestComponent = gsx.Component(() => (
+    const TestComponent = gsx.Component<{}, string>("TestComponent", () => (
       <ChatCompletion
         model="gpt-4"
         messages={[{ role: "user", content: "test" }]}

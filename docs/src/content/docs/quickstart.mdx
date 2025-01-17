@@ -43,6 +43,7 @@ interface RespondProps {
 type RespondOutput = string;
 
 const Respond = gsx.Component<RespondProps, RespondOutput>(
+  "Respond",
   async ({ userInput }) => {
     return (
       <ChatCompletion

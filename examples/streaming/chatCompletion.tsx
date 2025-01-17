@@ -12,6 +12,7 @@ interface ChatCompletionProps {
 }
 
 export const ChatCompletion = gsx.StreamComponent<ChatCompletionProps>(
+  "ChatCompletion",
   async ({ prompt }) => {
     // Use the LLM service's streaming API
     const result = await llm.completeStream(prompt);
