@@ -20,9 +20,11 @@ type FetchInit = Parameters<typeof fetch>[1];
  */
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-async function executeWithCheckpoints<T>(
-  element: ExecutableValue,
-): Promise<{ result: T; checkpoints: ExecutionNode[] }> {
+async function executeWithCheckpoints<T>(element: ExecutableValue): Promise<{
+  result: T;
+  checkpoints: ExecutionNode[];
+  checkpointManager: CheckpointManager;
+}> {
   const checkpoints: ExecutionNode[] = [];
 
   // Set up fetch mock to capture checkpoints
@@ -50,7 +52,10 @@ async function executeWithCheckpoints<T>(
     gsx.execute<T>(element),
   );
 
-  return { result, checkpoints };
+  // Wait for any pending checkpoints
+  await checkpointManager.waitForPendingUpdates();
+
+  return { result, checkpoints, checkpointManager };
 }
 
 suite("checkpoint", () => {
@@ -355,6 +360,117 @@ suite("checkpoint", () => {
           ],
         },
       ],
+    });
+  });
+
+  test("handles streaming components", async () => {
+    // Define a streaming component that yields tokens with delays
+    const StreamingComponent = gsx.StreamComponent<{ tokens: string[] }>(
+      "StreamingComponent",
+      ({ tokens }) => {
+        const stream = async function* () {
+          for (const token of tokens) {
+            await setTimeout(0); // Small delay between tokens
+            yield token;
+          }
+        };
+        return stream();
+      },
+    );
+
+    // Test non-streaming mode first
+    const { result: nonStreamingResult, checkpoints: nonStreamingCheckpoints } =
+      await executeWithCheckpoints<string>(
+        <StreamingComponent tokens={["Hello", " ", "World"]} stream={false} />,
+      );
+
+    // Verify non-streaming execution
+    expect(nonStreamingResult).toBe("Hello World");
+    const nonStreamingFinal =
+      nonStreamingCheckpoints[nonStreamingCheckpoints.length - 1];
+    expect(nonStreamingFinal).toMatchObject({
+      componentName: "StreamingComponent",
+      props: { tokens: ["Hello", " ", "World"] },
+      output: "Hello World",
+    });
+
+    // Test streaming mode
+    const {
+      result: streamingResult,
+      checkpoints: streamingCheckpoints,
+      checkpointManager,
+    } = await executeWithCheckpoints<AsyncGenerator<string>>(
+      <StreamingComponent tokens={["Hello", " ", "World"]} stream={true} />,
+    );
+
+    // Collect streaming results
+    let streamedContent = "";
+    for await (const token of streamingResult) {
+      streamedContent += token;
+    }
+
+    // Wait for final checkpoint to be written
+    await checkpointManager.waitForPendingUpdates();
+
+    // Verify streaming execution
+    expect(streamedContent).toBe("Hello World");
+    const streamingFinal =
+      streamingCheckpoints[streamingCheckpoints.length - 1];
+    expect(streamingFinal).toMatchObject({
+      componentName: "StreamingComponent",
+      props: { tokens: ["Hello", " ", "World"] },
+      output: "Hello World",
+      metadata: { streamCompleted: true },
+    });
+  });
+
+  test("handles errors in streaming components", async () => {
+    const ErrorStreamingComponent = gsx.StreamComponent<{
+      shouldError: boolean;
+    }>("ErrorStreamingComponent", ({ shouldError }) => {
+      const stream = async function* () {
+        yield "start";
+        await setTimeout(0); // Add delay to ensure async behavior
+        if (shouldError) {
+          throw new Error("Stream error");
+        }
+        yield "end";
+      };
+      return stream();
+    });
+
+    // Execute with error
+    const {
+      result: errorResult,
+      checkpoints: errorCheckpoints,
+      checkpointManager,
+    } = await executeWithCheckpoints<AsyncGenerator<string>>(
+      <ErrorStreamingComponent shouldError={true} stream={true} />,
+    );
+
+    // Collect results until error
+    let errorContent = "";
+    try {
+      for await (const token of errorResult) {
+        errorContent += token;
+      }
+    } catch (_error) {
+      // Expected error, ignore
+    }
+
+    // Wait for final checkpoint to be written
+    await checkpointManager.waitForPendingUpdates();
+
+    // Verify error state
+    expect(errorContent).toBe("start");
+    const errorFinal = errorCheckpoints[errorCheckpoints.length - 1];
+    expect(errorFinal).toMatchObject({
+      componentName: "ErrorStreamingComponent",
+      output: "start",
+      metadata: {
+        error: "Stream error",
+        streamCompleted: false,
+      },
     });
   });
 });
