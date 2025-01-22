@@ -1,5 +1,5 @@
 {
-  "name": "@gensx-examples/structured-outputs",
+  "name": "@gensx-examples/providers",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -15,14 +15,14 @@
   },
   "dependencies": {
     "@gensx/openai": "workspace:*",
+    "@mendable/firecrawl-js": "^1.15.7",
     "gensx": "workspace:*",
-    "openai": "^4.77.4",
-    "zod": "^3.24.1"
+    "openai": "^4.77.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.11",
     "nodemon": "^3.1.9",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.0.0"
   }
 }
