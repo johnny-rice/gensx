@@ -1,6 +1,10 @@
 import { join } from "node:path";
+import { promisify } from "node:util";
+import { gzip } from "node:zlib";
 
 import { ComponentOpts, STREAMING_PLACEHOLDER } from "./component";
+
+const gzipAsync = promisify(gzip);
 
 // Cross-platform UUID generation
 function generateUUID(): string {
@@ -60,6 +64,9 @@ export class CheckpointManager implements CheckpointWriter {
   // Track active checkpoint write
   private activeCheckpoint: Promise<void> | null = null;
   private pendingUpdate = false;
+  private version = 1;
+  private org = "";
+  private apiKey = "";
 
   // Provide unified view of all secrets
   get secretValues(): Set<unknown> {
@@ -72,14 +79,43 @@ export class CheckpointManager implements CheckpointWriter {
     return allSecrets;
   }
 
-  constructor() {
-    // Set checkpointsEnabled based on environment variable
-    // Environment variables are strings, so check for common truthy values
-    const checkpointsEnv = process.env.GENSX_CHECKPOINTS?.toLowerCase();
-    this.checkpointsEnabled =
-      checkpointsEnv === "true" ||
-      checkpointsEnv === "1" ||
-      checkpointsEnv === "yes";
+  constructor(opts?: { apiKey: string; org: string; disabled?: boolean }) {
+    // The presence of a apiKey is enough to enable checkpoints, but it can be disabled by setting GENSX_CHECKPOINTS=false
+    // org must also be set to record checkpoints.
+    const apiKey = opts?.apiKey ?? process.env.GENSX_API_KEY;
+    const org = opts?.org ?? process.env.GENSX_ORG;
+
+    this.checkpointsEnabled = apiKey !== undefined;
+    this.org = org ?? "";
+    this.apiKey = apiKey ?? "";
+
+    if (
+      opts?.disabled ||
+      process.env.GENSX_CHECKPOINTS === "false" ||
+      process.env.GENSX_CHECKPOINTS === "0" ||
+      process.env.GENSX_CHECKPOINTS === "no" ||
+      process.env.GENSX_CHECKPOINTS === "off"
+    ) {
+      this.checkpointsEnabled = false;
+    }
+
+    console.log(
+      "checkpointsEnabled",
+      this.checkpointsEnabled,
+      apiKey,
+      org,
+      opts?.disabled,
+    );
+
+    if (!this.checkpointsEnabled) {
+      return;
+    }
+
+    if (!this.org) {
+      throw new Error(
+        "GENSX_ORG is not set, must be set to record checkpoints. You can disable checkpoints by setting GENSX_CHECKPOINTS=false or unsetting GENSX_API_KEY.",
+      );
+    }
   }
 
   private attachToParent(node: ExecutionNode, parent: ExecutionNode) {
@@ -194,19 +230,48 @@ export class CheckpointManager implements CheckpointWriter {
     if (!this.root) return;
 
     try {
-      const baseUrl =
-        process.env.GENSX_CHECKPOINT_URL ?? "http://localhost:3000";
-      const url = join(baseUrl, "api/execution");
-
       // Create a deep copy of the execution tree for masking
       const maskedRoot = this.maskExecutionTree(structuredClone(this.root));
+      const baseUrl =
+        process.env.GENSX_CHECKPOINT_URL ?? "https://api.gensx.com";
+      const url = join(baseUrl, `/org/${this.org}/executions`);
+      const steps = this.countSteps(this.root);
+
+      // Separately gzip the rawExecution data
+      const compressedExecution = await gzipAsync(
+        Buffer.from(
+          JSON.stringify({
+            ...maskedRoot,
+            updatedAt: Date.now(),
+          }),
+          "utf-8",
+        ),
+      );
+      const base64CompressedExecution =
+        Buffer.from(compressedExecution).toString("base64");
+
+      const payload = {
+        executionId: this.root.id,
+        version: this.version,
+        schemaVersion: 2,
+        workflowName: this.root.componentName,
+        startedAt: this.root.startTime,
+        completedAt: this.root.endTime,
+        rawExecution: base64CompressedExecution,
+        steps,
+      };
+
+      const compressedData = await gzipAsync(JSON.stringify(payload));
 
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Content-Encoding": "gzip",
+          Authorization: `Bearer ${this.apiKey}`,
+          "accept-encoding": "gzip",
         },
-        body: JSON.stringify(maskedRoot),
+        body: compressedData,
       });
 
       if (!response.ok) {
@@ -218,6 +283,16 @@ export class CheckpointManager implements CheckpointWriter {
     } catch (error) {
       console.error(`[Checkpoint] Failed to save checkpoint:`, { error });
     }
+    // Always increment, just in case the write was received by the server. The version value does not need to be
+    // perfectly monotonic, just simply the next value needs to be greater than the previous value.
+    this.version++;
+  }
+
+  private countSteps(node: ExecutionNode): number {
+    return node.children.reduce(
+      (acc, child) => acc + this.countSteps(child),
+      1,
+    );
   }
 
   private maskExecutionTree(node: ExecutionNode): ExecutionNode {

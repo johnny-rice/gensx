@@ -1,90 +1,24 @@
 import { setTimeout } from "timers/promises";
 
 import type { ExecutionNode } from "@/checkpoint.js";
-import type { ExecutableValue } from "@/types.js";
 
-import { afterEach, beforeEach, expect, suite, test, vi } from "vitest";
+import { beforeEach, expect, suite, test, vi } from "vitest";
 
 import { CheckpointManager } from "@/checkpoint.js";
-import { ExecutionContext, withContext } from "@/context.js";
 import { gsx } from "@/index.js";
-import { createWorkflowContext } from "@/workflow-context.js";
 
-// Add types for fetch API
-export type FetchInput = Parameters<typeof fetch>[0];
-export type FetchInit = Parameters<typeof fetch>[1];
+import {
+  executeWithCheckpoints,
+  getExecutionFromBody,
+  mockFetch,
+} from "./utils/executeWithCheckpoints";
 
 // Helper function to generate test IDs
 export function generateTestId(): string {
   return `test-${Math.random().toString(36).substring(7)}`;
 }
 
-/**
- * Helper to execute a workflow with checkpoint tracking
- * Returns both the execution result and recorded checkpoints for verification
- */
-
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-export async function executeWithCheckpoints<T>(
-  element: ExecutableValue,
-): Promise<{
-  result: T;
-  checkpoints: ExecutionNode[];
-  checkpointManager: CheckpointManager;
-}> {
-  const checkpoints: ExecutionNode[] = [];
-
-  // Set up fetch mock to capture checkpoints
-  global.fetch = vi
-    .fn()
-    // eslint-disable-next-line @typescript-eslint/require-await
-    .mockImplementation(async (_input: FetchInput, options?: FetchInit) => {
-      if (!options?.body) throw new Error("No body provided");
-      const checkpoint = JSON.parse(options.body as string) as ExecutionNode;
-      checkpoints.push(checkpoint);
-      return new Response(null, { status: 200 });
-    });
-
-  // Create and configure workflow context
-  const checkpointManager = new CheckpointManager();
-  const workflowContext = createWorkflowContext();
-  workflowContext.checkpointManager = checkpointManager;
-  const executionContext = new ExecutionContext({});
-  const contextWithWorkflow = executionContext.withContext({
-    [Symbol.for("gensx.workflow")]: workflowContext,
-  });
-
-  // Execute with context
-  const result = await withContext(contextWithWorkflow, () =>
-    gsx.execute<T>(element),
-  );
-
-  // Wait for any pending checkpoints
-  await checkpointManager.waitForPendingUpdates();
-
-  return { result, checkpoints, checkpointManager };
-}
-
 suite("checkpoint", () => {
-  const originalFetch = global.fetch;
-  const originalEnv = process.env.GENSX_CHECKPOINTS;
-
-  beforeEach(() => {
-    process.env.GENSX_CHECKPOINTS = "true";
-    // Mock fetch for all tests
-    global.fetch = vi
-      .fn()
-      .mockImplementation((_input: FetchInput, _options?: FetchInit) => {
-        return new Response(null, { status: 200 });
-      });
-  });
-
-  afterEach(() => {
-    global.fetch = originalFetch;
-    process.env.GENSX_CHECKPOINTS = originalEnv;
-    vi.restoreAllMocks();
-  });
-
   test("basic component test", async () => {
     // Define a simple component that returns a string
     const SimpleComponent = gsx.Component<{ message: string }, string>(
@@ -124,7 +58,7 @@ suite("checkpoint", () => {
 
   test("no checkpoints when disabled", async () => {
     // Disable checkpoints
-    process.env.GENSX_CHECKPOINTS = undefined;
+    process.env.GENSX_CHECKPOINTS = "false";
 
     // Define a simple component that returns a string
     const SimpleComponent = gsx.Component<{ message: string }, string>(
@@ -139,6 +73,9 @@ suite("checkpoint", () => {
     const { result, checkpoints } = await executeWithCheckpoints<string>(
       <SimpleComponent message="world" />,
     );
+
+    // Restore checkpoints
+    process.env.GENSX_CHECKPOINTS = undefined;
 
     // Verify execution still works
     expect(result).toBe("hello world");
@@ -181,8 +118,7 @@ suite("checkpoint", () => {
     expect(result[99]).toBe("component 99");
 
     // Verify checkpoint behavior
-    const fetchCalls = (global.fetch as unknown as ReturnType<typeof vi.fn>)
-      .mock.calls.length;
+    const fetchCalls = vi.mocked(global.fetch).mock.calls.length;
 
     // We expect:
     // - Some minimum number of calls to capture the state (could be heavily batched)
@@ -490,32 +426,30 @@ suite("checkpoint", () => {
 
 suite("tree reconstruction", () => {
   beforeEach(() => {
-    process.env.GENSX_CHECKPOINTS = "true";
-    global.fetch = vi
-      .fn()
-      .mockImplementation((_input: FetchInput, _options?: FetchInit) => {
-        return new Response(null, { status: 200 });
-      });
+    mockFetch(() => {
+      return new Response(null, { status: 200 });
+    });
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  test("handles simple parent-child relationship", () => {
-    const cm = new CheckpointManager();
+  test("handles simple parent-child relationship", async () => {
+    const cm = new CheckpointManager({
+      apiKey: "test-api-key",
+      org: "test-org",
+    });
     const parentId = generateTestId();
     const childId = cm.addNode({ componentName: "Child1" }, parentId);
     cm.addNode({ componentName: "Parent", id: parentId });
 
+    await cm.waitForPendingUpdates();
+
     // Verify fetch was called with the correct tree structure
-    const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>;
+    const fetchMock = vi.mocked(global.fetch);
     expect(fetchMock).toHaveBeenCalled();
     const lastCall = fetchMock.mock.lastCall;
     expect(lastCall).toBeDefined();
-    const options = lastCall![1] as FetchInit;
+    const options = lastCall![1];
     expect(options?.body).toBeDefined();
-    const lastCallBody = JSON.parse(options!.body! as string) as ExecutionNode;
+    const lastCallBody = getExecutionFromBody(options?.body as string);
     expect(lastCallBody.componentName).toBe("Parent");
     expect(lastCallBody.children[0].componentName).toBe("Child1");
 

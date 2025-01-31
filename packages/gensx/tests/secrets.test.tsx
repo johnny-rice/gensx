@@ -1,12 +1,8 @@
-import { afterEach, beforeEach, expect, suite, test, vi } from "vitest";
+import { expect, suite, test } from "vitest";
 
 import { gsx } from "@/index.js";
 
-import {
-  executeWithCheckpoints,
-  type FetchInit,
-  type FetchInput,
-} from "./checkpoint.test.js";
+import { executeWithCheckpoints } from "./utils/executeWithCheckpoints";
 
 // Test components
 interface ArrayConfig {
@@ -155,18 +151,6 @@ const SecretStreamComponent = gsx.StreamComponent<{ apiKey: string }>(
 );
 
 suite("secrets", () => {
-  beforeEach(() => {
-    global.fetch = vi
-      .fn()
-      .mockImplementation((_input: FetchInput, _options?: FetchInit) => {
-        return new Response(null, { status: 200 });
-      });
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   test("collects secrets at registration time", async () => {
     const secretValue = "secret-api-key-12345";
     const { checkpoints, checkpointManager } = await executeWithCheckpoints<
