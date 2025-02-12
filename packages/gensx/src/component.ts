@@ -88,6 +88,10 @@ export function Component<P, O>(
     });
   }
 
+  Object.defineProperty(GsxComponent, "__gsxFramework", {
+    value: true,
+  });
+
   return GsxComponent;
 }
 
@@ -190,6 +194,10 @@ export function StreamComponent<P>(
       value: name,
     });
   }
+
+  Object.defineProperty(GsxStreamComponent, "__gsxFramework", {
+    value: true,
+  });
 
   return GsxStreamComponent;
 }

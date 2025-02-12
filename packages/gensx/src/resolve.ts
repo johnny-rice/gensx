@@ -17,7 +17,12 @@ export async function resolveDeep<T>(value: unknown): Promise<T> {
     return value as T;
   }
 
-  // Pass through streamable values - they are handled by execute
+  // Pass through any async iterable without consuming it
+  if (value && typeof value === "object" && Symbol.asyncIterator in value) {
+    return value as T;
+  }
+
+  // Pass through streamable values - they are handled by execute (StreamComponent)
   if (isStreamable(value)) {
     return value as unknown as T;
   }
@@ -37,8 +42,13 @@ export async function resolveDeep<T>(value: unknown): Promise<T> {
 
   // Handle functions first
   if (typeof value === "function" && value.name !== "Object") {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    return await resolveDeep(value());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    if ((value as any).__gsxFramework) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      return await resolveDeep(value());
+    }
+
+    return value as T;
   }
 
   // Then handle objects (but not null)
