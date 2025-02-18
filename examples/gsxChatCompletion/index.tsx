@@ -41,18 +41,18 @@ async function tools() {
   type WeatherParams = z.infer<typeof weatherSchema>;
 
   // Create the tool with the correct type - using the schema type, not the inferred type
-  const tool = new GSXTool<typeof weatherSchema>(
-    "get_weather",
-    "get the weather for a given location",
-    weatherSchema,
-    async ({ location }: WeatherParams) => {
+  const tool = new GSXTool({
+    name: "get_weather",
+    description: "get the weather for a given location",
+    schema: weatherSchema,
+    execute: async ({ location }: WeatherParams) => {
       console.log("getting weather for", location);
       const weather = ["sunny", "cloudy", "rainy", "snowy"];
       return Promise.resolve({
         weather: weather[Math.floor(Math.random() * weather.length)],
       });
     },
-  );
+  });
 
   const results = await gsx.execute<ChatCompletionOutput>(
     <OpenAIProvider apiKey={process.env.OPENAI_API_KEY}>
@@ -88,18 +88,18 @@ async function toolsStreaming() {
   type WeatherParams = z.infer<typeof weatherSchema>;
 
   // Create the tool with the correct type - using the schema type, not the inferred type
-  const tool = new GSXTool<typeof weatherSchema>(
-    "get_weather",
-    "get the weather for a given location",
-    weatherSchema,
-    async ({ location }: WeatherParams) => {
+  const tool = new GSXTool({
+    name: "get_weather",
+    description: "get the weather for a given location",
+    schema: weatherSchema,
+    execute: async ({ location }: WeatherParams) => {
       console.log("getting weather for", location);
       const weather = ["sunny", "cloudy", "rainy", "snowy"];
       return Promise.resolve({
         weather: weather[Math.floor(Math.random() * weather.length)],
       });
     },
-  );
+  });
 
   const results = await gsx.execute<Stream<ChatCompletionChunk>>(
     <OpenAIProvider apiKey={process.env.OPENAI_API_KEY}>
@@ -202,11 +202,11 @@ async function multiStepTools() {
     location: z.string(),
   });
 
-  const weatherTool = new GSXTool<typeof weatherSchema>(
-    "get_weather",
-    "Get the current weather for a location",
-    weatherSchema,
-    async ({ location }) => {
+  const weatherTool = new GSXTool({
+    name: "get_weather",
+    description: "Get the current weather for a location",
+    schema: weatherSchema,
+    execute: async ({ location }) => {
       console.log("Getting weather for", location);
       // Simulate API delay
       const weather = ["sunny", "cloudy", "rainy", "snowy"];
@@ -214,7 +214,7 @@ async function multiStepTools() {
         weather: weather[Math.floor(Math.random() * weather.length)],
       });
     },
-  );
+  });
 
   // Local services tool
   const servicesSchema = z.object({
@@ -222,11 +222,12 @@ async function multiStepTools() {
     location: z.string(),
   });
 
-  const servicesTool = new GSXTool<typeof servicesSchema>(
-    "find_local_services",
-    "Find local services (restaurants, parks, or cafes) in a given location",
-    servicesSchema,
-    async ({ service, location }) => {
+  const servicesTool = new GSXTool({
+    name: "find_local_services",
+    description:
+      "Find local services (restaurants, parks, or cafes) in a given location",
+    schema: servicesSchema,
+    execute: async ({ service, location }) => {
       console.log(`Finding ${service} near ${location}`);
       // Simulate API delay
       const places = {
@@ -241,7 +242,7 @@ async function multiStepTools() {
         })),
       });
     },
-  );
+  });
 
   const results = await gsx.execute<ChatCompletionOutput>(
     <OpenAIProvider apiKey={process.env.OPENAI_API_KEY}>
