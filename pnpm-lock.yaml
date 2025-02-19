@@ -349,6 +349,15 @@ importers:
       commander:
         specifier: ^11.1.0
         version: 11.1.0
+      enquirer:
+        specifier: ^2.4.1
+        version: 2.4.1
+      ora:
+        specifier: ^8.0.1
+        version: 8.2.0
+      picocolors:
+        specifier: ^1.0.0
+        version: 1.1.1
     devDependencies:
       '@types/fs-extra':
         specifier: ^11.0.4
@@ -408,6 +417,9 @@ importers:
       consola:
         specifier: ^3.2.3
         version: 3.3.3
+      create-gensx:
+        specifier: workspace:*
+        version: link:../create-gensx
       ini:
         specifier: ^5.0.0
         version: 5.0.0
@@ -7793,7 +7805,7 @@ snapshots:
       '@babel/traverse': 7.26.4
       '@babel/types': 7.26.3
       convert-source-map: 2.0.0
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@5.5.0)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -7864,7 +7876,7 @@ snapshots:
       '@babel/parser': 7.26.3
       '@babel/template': 7.25.9
       '@babel/types': 7.26.3
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@5.5.0)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -10027,7 +10039,7 @@ snapshots:
   '@vitest/coverage-istanbul@2.1.8(vitest@2.1.8(@types/node@20.17.11)(lightningcss@1.29.1))':
     dependencies:
       '@istanbuljs/schema': 0.1.3
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@5.5.0)
       istanbul-lib-coverage: 3.2.2
       istanbul-lib-instrument: 6.0.3
       istanbul-lib-report: 3.0.1
@@ -11003,10 +11015,6 @@ snapshots:
   de-indent@1.0.2: {}
 
   debug@3.2.7:
-    dependencies:
-      ms: 2.1.3
-
-  debug@4.4.0:
     dependencies:
       ms: 2.1.3
 
@@ -12526,7 +12534,7 @@ snapshots:
   istanbul-lib-source-maps@5.0.6:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@5.5.0)
       istanbul-lib-coverage: 3.2.2
     transitivePeerDependencies:
       - supports-color
@@ -15391,7 +15399,7 @@ snapshots:
   vite-node@2.1.8(@types/node@20.17.11)(lightningcss@1.29.1):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@5.5.0)
       es-module-lexer: 1.6.0
       pathe: 1.1.2
       vite: 5.4.11(@types/node@20.17.11)(lightningcss@1.29.1)
@@ -15432,7 +15440,7 @@ snapshots:
       '@volar/typescript': 2.4.11
       '@vue/language-core': 2.2.0(typescript@5.7.3)
       compare-versions: 6.1.1
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@5.5.0)
       kolorist: 1.8.0
       local-pkg: 0.5.1
       magic-string: 0.30.17
@@ -15492,7 +15500,7 @@ snapshots:
       '@vitest/spy': 2.1.8
       '@vitest/utils': 2.1.8
       chai: 5.1.2
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@5.5.0)
       expect-type: 1.1.0
       magic-string: 0.30.17
       pathe: 1.1.2
