@@ -103,9 +103,8 @@ jobs:
         with:
           version: 20.x
 
-      - name: Build CLI
+      - name: Build Packages 🏗️
         run: pnpm build
-        working-directory: packages/gensx-cli
 
       - name: Building...
         run: TARGET=${{ matrix.target }} pnpm run package
