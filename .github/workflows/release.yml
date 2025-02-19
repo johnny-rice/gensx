@@ -16,8 +16,8 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      cli_released: ${{ steps.release.outputs.releases_created && contains(fromJson(steps.release.outputs.releases || '{}'), 'packages/gensx-cli') }}
-      cli_version: ${{ fromJson(steps.release.outputs.releases || '{}')['packages/gensx-cli'].version }}
+      cli_released: ${{ steps.release.outputs.releases_created && contains(fromJson(steps.release.outputs.paths_released || '[]'), 'packages/gensx-cli') }}
+      cli_version: ${{ fromJson(steps.release.outputs.paths_released || '[]')['packages/gensx-cli'].version }}
     # Only run on pushes to the original repository and not on forks
     if: |
       github.repository == 'gensx-inc/gensx' &&
@@ -40,7 +40,7 @@ jobs:
           # For each package that was released, create a marker file and version file
           echo "${{ steps.release.outputs.paths_released }}" | jq -r '.[]' | while read -r path; do
             touch "release-please-outputs/$path--release_created"
-            version=$(echo "${{ steps.release.outputs.releases }}" | jq -r --arg path "$path" '.[$path].version')
+            version=$(echo "${{ steps.release.outputs.paths_released }}" | jq -r --arg path "$path" '.[$path].version')
             echo "$version" > "release-please-outputs/$path--version"
           done
 
