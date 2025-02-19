@@ -10,9 +10,9 @@ import { Stream } from "openai/streaming";
 import { z } from "zod";
 
 import { OpenAIChatCompletion } from "./openai.js";
-import { StreamCompletion } from "./stream.js";
-import { StructuredOutput } from "./structured-output.js";
-import { GSXTool, ToolsCompletion } from "./tools.js";
+import { streamCompletionImpl } from "./stream.js";
+import { structuredOutputImpl } from "./structured-output.js";
+import { GSXTool, toolsCompletionImpl } from "./tools.js";
 // Types for the composition-based implementation
 export type StreamingProps = Omit<
   ChatCompletionCreateParamsNonStreaming,
@@ -51,32 +51,49 @@ export type GSXChatCompletionOutput<P> = P extends StreamingProps
     ? O
     : ChatCompletionOutput;
 
-// Update CompositionCompletion to use the renamed parameter
-export const GSXChatCompletion = gsx.Component<
-  GSXChatCompletionProps,
-  GSXChatCompletionOutput<GSXChatCompletionProps>
->("GSXCompletion", (props) => {
+// Extract GSXChatCompletion implementation
+export const gsxChatCompletionImpl = async <P extends GSXChatCompletionProps>(
+  props: P,
+): Promise<GSXChatCompletionOutput<P>> => {
   // Handle streaming case
   if (props.stream) {
     const { tools, ...rest } = props;
-    return <StreamCompletion {...rest} tools={tools} stream={true} />;
+    return streamCompletionImpl({
+      ...rest,
+      tools,
+      stream: true,
+    }) as GSXChatCompletionOutput<P>;
   }
 
   // Handle structured output case
   if ("outputSchema" in props && props.outputSchema) {
     const { tools, outputSchema, ...rest } = props;
-    return (
-      <StructuredOutput {...rest} tools={tools} outputSchema={outputSchema} />
-    );
+    return structuredOutputImpl({
+      ...rest,
+      tools,
+      outputSchema,
+    }) as GSXChatCompletionOutput<P>;
   }
 
   // Handle standard case (with or without tools)
-  const { tools, ...rest } = props;
+  const { tools, stream, ...rest } = props;
   if (tools) {
-    return <ToolsCompletion {...rest} tools={tools} />;
+    return toolsCompletionImpl({
+      ...rest,
+      tools,
+    }) as GSXChatCompletionOutput<P>;
   }
-  return <OpenAIChatCompletion {...rest} />;
-});
+  const result = await gsx.execute<ChatCompletionOutput>(
+    <OpenAIChatCompletion {...rest} stream={false} />,
+  );
+  return result as GSXChatCompletionOutput<P>;
+};
+
+// Update component to use implementation
+export const GSXChatCompletion = gsx.Component<
+  GSXChatCompletionProps,
+  GSXChatCompletionOutput<GSXChatCompletionProps>
+>("GSXChatCompletion", gsxChatCompletionImpl);
 
 // Base props type from OpenAI
 export type ChatCompletionProps = Omit<
@@ -91,9 +108,7 @@ export const ChatCompletion = gsx.StreamComponent<ChatCompletionProps>(
   "ChatCompletion",
   async (props) => {
     if (props.stream) {
-      const stream = await gsx.execute<Stream<ChatCompletionChunk>>(
-        <GSXChatCompletion {...props} stream={true} />,
-      );
+      const stream = await gsxChatCompletionImpl({ ...props, stream: true });
 
       // Transform Stream<ChatCompletionChunk> into AsyncIterableIterator<string>
       const generateTokens = async function* () {
@@ -107,9 +122,7 @@ export const ChatCompletion = gsx.StreamComponent<ChatCompletionProps>(
 
       return generateTokens();
     } else {
-      const response = await gsx.execute<ChatCompletionOutput>(
-        <GSXChatCompletion {...props} stream={false} />,
-      );
+      const response = await gsxChatCompletionImpl({ ...props, stream: false });
       const content = response.choices[0]?.message?.content ?? "";
 
       // Use sync iterator for non-streaming case, matching ChatCompletion's behavior
