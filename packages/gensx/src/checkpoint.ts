@@ -67,7 +67,9 @@ export class CheckpointManager implements CheckpointWriter {
   private version = 1;
   private org: string;
   private apiKey: string;
-  private baseUrl: string;
+  private apiBaseUrl: string;
+  private consoleBaseUrl: string;
+  private printUrl = false;
 
   // Provide unified view of all secrets
   get secretValues(): Set<unknown> {
@@ -84,20 +86,29 @@ export class CheckpointManager implements CheckpointWriter {
     apiKey: string;
     org: string;
     disabled?: boolean;
-    baseUrl?: string;
+    apiBaseUrl?: string;
+    consoleBaseUrl?: string;
   }) {
     // Priority order: constructor opts > env vars > config file
     const config = readConfig();
     const apiKey =
       opts?.apiKey ?? process.env.GENSX_API_KEY ?? config.api?.token;
     const org = opts?.org ?? process.env.GENSX_ORG ?? config.api?.org;
-    const baseUrl =
-      opts?.baseUrl ?? process.env.GENSX_CHECKPOINT_URL ?? config.api?.baseUrl;
+    const apiBaseUrl =
+      opts?.apiBaseUrl ??
+      process.env.GENSX_CHECKPOINT_URL ??
+      config.api?.baseUrl;
+    const consoleBaseUrl =
+      opts?.consoleBaseUrl ??
+      process.env.GENSX_CONSOLE_URL ??
+      config.console?.baseUrl;
 
     this.checkpointsEnabled = apiKey !== undefined;
     this.org = org ?? "";
     this.apiKey = apiKey ?? "";
-    this.baseUrl = baseUrl ?? "https://api.gensx.com";
+    this.apiBaseUrl = apiBaseUrl ?? "https://api.gensx.com";
+    this.consoleBaseUrl = consoleBaseUrl ?? "https://app.gensx.com";
+
     if (
       opts?.disabled ||
       process.env.GENSX_CHECKPOINTS === "false" ||
@@ -230,6 +241,7 @@ export class CheckpointManager implements CheckpointWriter {
     });
   }
 
+  private havePrintedUrl = false;
   private async writeCheckpoint() {
     if (!this.root) return;
 
@@ -255,7 +267,7 @@ export class CheckpointManager implements CheckpointWriter {
 
       const treeCopy = cloneWithoutFunctions(this.root);
       const maskedRoot = this.maskExecutionTree(treeCopy as ExecutionNode);
-      const url = join(this.baseUrl, `/org/${this.org}/executions`);
+      const url = join(this.apiBaseUrl, `/org/${this.org}/executions`);
       const steps = this.countSteps(this.root);
 
       // Separately gzip the rawExecution data
@@ -271,11 +283,12 @@ export class CheckpointManager implements CheckpointWriter {
       const base64CompressedExecution =
         Buffer.from(compressedExecution).toString("base64");
 
+      const workflowName = this.workflowName ?? this.root.componentName;
       const payload = {
         executionId: this.root.id,
         version: this.version,
         schemaVersion: 2,
-        workflowName: this.root.componentName,
+        workflowName,
         startedAt: this.root.startTime,
         completedAt: this.root.endTime,
         rawExecution: base64CompressedExecution,
@@ -300,6 +313,24 @@ export class CheckpointManager implements CheckpointWriter {
           status: response.status,
           message: await response.text(),
         });
+      }
+
+      if (this.printUrl && !this.havePrintedUrl && response.ok) {
+        const responseBody = (await response.json()) as {
+          status: "ok";
+          data: {
+            executionId: string;
+            workflowName?: string;
+          };
+        };
+        const executionUrl = new URL(
+          `/${this.org}/workflows/${responseBody.data.workflowName ?? workflowName}/${responseBody.data.executionId}`,
+          this.consoleBaseUrl,
+        );
+        this.havePrintedUrl = true;
+        console.info(
+          `\n\n\x1b[33m[GenSX] View execution at:\x1b[0m \x1b[1;34m${executionUrl.toString()}\x1b[0m\n\n`,
+        );
       }
     } catch (error) {
       console.error(`[Checkpoint] Failed to save checkpoint:`, { error });
@@ -599,10 +630,6 @@ export class CheckpointManager implements CheckpointWriter {
       // Handle root node case
       if (!this.root) {
         this.root = node;
-        // If the workflow name is set, update the root node name.
-        if (this.workflowName) {
-          this.root.componentName = this.workflowName;
-        }
       } else if (this.root.parentId === node.id) {
         // Current root was waiting for this node as parent
         this.attachToParent(this.root, node);
@@ -666,13 +693,13 @@ export class CheckpointManager implements CheckpointWriter {
     }
   }
 
+  // TODO: What if we have already sent some checkpoints?
   setWorkflowName(name: string) {
-    // Right now we just update the name of the root node. Eventually this should be separated from the workflow name.
     this.workflowName = name;
+  }
 
-    if (this.root) {
-      this.root.componentName = name;
-    }
+  setPrintUrl(printUrl: boolean) {
+    this.printUrl = printUrl;
   }
 
   updateNode(id: string, updates: Partial<ExecutionNode>) {
@@ -694,9 +721,6 @@ export class CheckpointManager implements CheckpointWriter {
       }
 
       Object.assign(node, updates);
-      if (node.id === this.root?.id) {
-        node.componentName = this.workflowName ?? node.componentName;
-      }
       this.updateCheckpoint();
     } else {
       console.warn(`[Tracker] Attempted to update unknown node:`, { id });
