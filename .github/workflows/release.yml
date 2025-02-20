@@ -63,7 +63,7 @@ jobs:
   build-cli-binary:
     needs: release-please
     if: needs.release-please.outputs.cli_released == 'true'
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
