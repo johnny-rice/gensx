@@ -1,11 +1,11 @@
-# @gensx/ai-sdk
+# @gensx/vercel-ai-sdk
 
-AI SDK for [GenSX](https://github.com/gensx-inc/gensx)
+Vercel AI SDK for [GenSX](https://github.com/gensx-inc/gensx/packages/gensx-vercel-ai-sdk)
 
 ## Installation
 
 ```bash
-npm install @gensx/ai-sdk
+npm install @gensx/vercel-ai-sdk
 ```
 
 ### Requires `gensx`
@@ -20,7 +20,7 @@ npm install gensx
 
 ```tsx
 import { gsx } from "gensx";
-import { GenerateText, StreamText } from "@gensx/ai-sdk";
+import { GenerateText, StreamText } from "@gensx/vercel-ai-sdk";
 
 const ChatBot = gsx.Component(async ({ userInput }) => {
   return (

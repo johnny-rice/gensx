@@ -1,7 +1,7 @@
 {
-  "name": "@gensx/ai-sdk",
+  "name": "@gensx/vercel-ai-sdk",
   "version": "0.1.0",
-  "description": "AI SDK for GenSX",
+  "description": "Vercel AI SDK for GenSX",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,7 +11,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/gensx-inc/gensx.git",
-    "directory": "packages/gensx-ai-sdk"
+    "directory": "packages/gensx-vercel-ai-sdk"
   },
   "scripts": {
     "build": "vite build",
