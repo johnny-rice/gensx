@@ -4,7 +4,7 @@ import { Stream } from "openai/streaming.mjs";
 import { expect, suite, test } from "vitest";
 
 import { GSXChatCompletionResult } from "@/gsx-completion";
-import { GSXChatCompletion, OpenAIProvider } from "@/index.js";
+import { GSXChatCompletion, OpenAIProvider } from "@/index";
 
 suite("GSXChatCompletion", () => {
   test("passes a stream to a child function", async () => {
