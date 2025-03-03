@@ -1,7 +1,7 @@
 {
-  "name": "@gensx/openai",
-  "version": "0.1.8",
-  "description": "OpenAI integration for GenSX",
+  "name": "@gensx/mcp",
+  "version": "0.1.0",
+  "description": "Module Context Protocol Support for GenSX",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,7 +12,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/gensx-inc/gensx.git",
-    "directory": "packages/gensx-openai"
+    "directory": "packages/gensx-mcp"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -25,31 +25,29 @@
   },
   "keywords": [
     "gensx",
-    "openai",
-    "ai",
-    "gpt",
-    "jsx"
+    "jsx",
+    "mcp"
   ],
   "files": [
     "dist"
   ],
   "author": "GenSX Team",
   "license": "Apache-2.0",
-  "peerDependencies": {
-    "openai": "^4.85.4"
-  },
   "devDependencies": {
+    "@tsconfig/node20": "^20.1.4",
     "@types/node": "^20.17.11",
     "@vitest/coverage-istanbul": "^2.1.8",
-    "openai": "^4.85.4",
+    "vite": "^6.1.0",
+    "vite-plugin-dts": "^4.5.0",
     "vitest": "^2.1.8"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0",
     "gensx": "workspace:*",
-    "zod": "^3.24.2",
-    "zod-to-json-schema": "^3.24.1"
+    "tsx": "^4.19.3",
+    "zod": "^3.24.2"
   }
 }
