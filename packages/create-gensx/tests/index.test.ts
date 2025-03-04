@@ -25,7 +25,7 @@ suite("create-gensx", () => {
     }
   });
 
-  it.skip("creates a working TypeScript project", async () => {
+  it("creates a working TypeScript project", async () => {
     // Create a temporary directory for our test
     tempDir = await mkdtemp(path.join(os.tmpdir(), "gensx-test-"));
     const projectName = "test-project";
@@ -35,6 +35,7 @@ suite("create-gensx", () => {
     await createGensxProject(projectPath, {
       template: "ts",
       force: false,
+      skipLogin: true,
     });
 
     // Update package.json to use local version of @gensx/core and @gensx/openai
@@ -49,6 +50,7 @@ suite("create-gensx", () => {
     packageJson.dependencies["@gensx/core"] = `file:${gensxPackagePath}`;
     packageJson.dependencies["@gensx/openai"] =
       `file:${gensxOpenaiPackagePath}`;
+
     await writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
     // Verify the project was created
