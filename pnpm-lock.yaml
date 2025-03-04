@@ -248,6 +248,34 @@ importers:
         specifier: ^5.0.0
         version: 5.7.3
 
+  examples/llm-games:
+    dependencies:
+      '@gensx/anthropic':
+        specifier: workspace:*
+        version: link:../../packages/gensx-anthropic
+      '@gensx/openai':
+        specifier: workspace:*
+        version: link:../../packages/gensx-openai
+      gensx:
+        specifier: workspace:*
+        version: link:../../packages/gensx
+      zod:
+        specifier: ^3.24.1
+        version: 3.24.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.17.11
+        version: 20.17.11
+      nodemon:
+        specifier: ^3.1.9
+        version: 3.1.9
+      tsx:
+        specifier: ^4.19.2
+        version: 4.19.3
+      typescript:
+        specifier: ^5.0.0
+        version: 5.7.3
+
   examples/mcp:
     dependencies:
       '@gensx/mcp':
@@ -463,7 +491,7 @@ importers:
         version: 12.0.0
       zod:
         specifier: ^3.24.1
-        version: 3.24.2
+        version: 3.24.1
     devDependencies:
       '@types/node':
         specifier: ^20.17.11
@@ -690,7 +718,7 @@ importers:
         version: 6.2.0(@types/node@20.17.11)(jiti@2.4.2)(lightningcss@1.29.1)(tsx@4.19.3)(yaml@2.7.0)
       vite-plugin-dts:
         specifier: ^4.5.0
-        version: 4.5.1(@types/node@20.17.11)(rollup@4.34.8)(typescript@5.7.3)(vite@6.2.0(@types/node@20.17.11)(jiti@2.4.2)(lightningcss@1.29.1)(tsx@4.19.3)(yaml@2.7.0))
+        version: 4.5.3(@types/node@20.17.11)(rollup@4.34.8)(typescript@5.7.3)(vite@6.2.0(@types/node@20.17.11)(jiti@2.4.2)(lightningcss@1.29.1)(tsx@4.19.3)(yaml@2.7.0))
       vitest:
         specifier: ^2.1.8
         version: 2.1.8(@types/node@20.17.11)(lightningcss@1.29.1)
@@ -724,14 +752,14 @@ importers:
     dependencies:
       ai:
         specifier: ^4.1.46
-        version: 4.1.46(react@19.0.0)(zod@3.24.2)
+        version: 4.1.50(react@19.0.0)(zod@3.24.1)
       gensx:
         specifier: workspace:*
         version: link:../gensx
     devDependencies:
       '@ai-sdk/openai':
         specifier: ^1.1.14
-        version: 1.1.15(zod@3.24.2)
+        version: 1.2.0(zod@3.24.1)
       '@types/node':
         specifier: ^20.17.11
         version: 20.17.11
@@ -743,10 +771,10 @@ importers:
         version: 2.1.8(@types/node@20.17.11)(lightningcss@1.29.1)
       zod:
         specifier: ^3.24.1
-        version: 3.24.2
+        version: 3.24.1
       zod-to-json-schema:
         specifier: ^3.24.1
-        version: 3.24.1(zod@3.24.2)
+        version: 3.24.1(zod@3.24.1)
 
   website/docs:
     dependencies:
@@ -956,8 +984,8 @@ packages:
     peerDependencies:
       zod: ^3.0.0
 
-  '@ai-sdk/openai@1.1.15':
-    resolution: {integrity: sha512-irGQx5lMrYI9gub7Sy2ZHu49D3Icf7OtfOu3X8fVKMONOyi54RTKRNjVZTewkfRNE44psTbZDO8j8qmPirOTNQ==}
+  '@ai-sdk/openai@1.2.0':
+    resolution: {integrity: sha512-tzxH6OxKL5ffts4zJPdziQSJGGpSrQcJmuSrE92jCt7pJ4PAU5Dx4tjNNFIU8lSfwarLnywejZEt3Fz0uQZZOQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.0.0
@@ -1000,8 +1028,8 @@ packages:
       zod:
         optional: true
 
-  '@ai-sdk/react@1.1.18':
-    resolution: {integrity: sha512-2wlWug6NVAc8zh3pgqtvwPkSNTdA6Q4x9CmrNXCeHcXfJkJ+MuHFQz/I7Wb7mLRajf0DAxsFLIhHyBCEuTkDNw==}
+  '@ai-sdk/react@1.1.20':
+    resolution: {integrity: sha512-4QOM9fR9SryaRraybckDjrhl1O6XejqELdKmrM5g9y9eLnWAfjwF+W1aN0knkSHzbbjMqN77sy9B9yL8EuJbDw==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
@@ -1905,8 +1933,8 @@ packages:
   '@microsoft/api-extractor-model@7.30.3':
     resolution: {integrity: sha512-yEAvq0F78MmStXdqz9TTT4PZ05Xu5R8nqgwI5xmUmQjWBQ9E6R2n8HB/iZMRciG4rf9iwI2mtuQwIzDXBvHn1w==}
 
-  '@microsoft/api-extractor@7.51.0':
-    resolution: {integrity: sha512-LjyQ2xljliss2kIsSo8Npu9mBv6wnaR3ikBagCU2mC7Ggn30sTAOFLzVNyMLOMiuSOFxsEbskrBO5lLn92qnZQ==}
+  '@microsoft/api-extractor@7.51.1':
+    resolution: {integrity: sha512-VoFvIeYXme8QctXDkixy1KIn750kZaFy2snAEOB3nhDFfbBcJNEcvBrpCIQIV09MqI4g9egKUkg+/12WMRC77w==}
     hasBin: true
 
   '@microsoft/tsdoc-config@0.17.1':
@@ -3236,8 +3264,8 @@ packages:
   '@vue/compiler-vue2@2.7.16':
     resolution: {integrity: sha512-qYC3Psj9S/mfu9uVi5WvNZIzq+xnXMhOwbTFKKDD7b1lhpnn71jXSFdTQ+WsIEk0ONCd7VV2IMm7ONl6tbQ86A==}
 
-  '@vue/language-core@2.2.4':
-    resolution: {integrity: sha512-eGGdw7eWUwdIn9Fy/irJ7uavCGfgemuHQABgJ/hU1UgZFnbTg9VWeXvHQdhY+2SPQZWJqWXvRWIg67t4iWEa+Q==}
+  '@vue/language-core@2.2.0':
+    resolution: {integrity: sha512-O1ZZFaaBGkKbsRfnVH1ifOK1/1BUkyK+3SQsfnh6PmMmD4qJcTU8godCeA96jjDRTL6zgnK7YzCHfaUlH2r0Mw==}
     peerDependencies:
       typescript: '*'
     peerDependenciesMeta:
@@ -3301,8 +3329,8 @@ packages:
       zod:
         optional: true
 
-  ai@4.1.46:
-    resolution: {integrity: sha512-VTvAktT69IN1qcNAv7OlcOuR0q4HqUlhkVacrWmMlEoprYykF9EL5RY8IECD5d036Wqg0walwbSKZlA2noHm1A==}
+  ai@4.1.50:
+    resolution: {integrity: sha512-YBNeemrJKDrxoBQd3V9aaxhKm5q5YyRcF7PZE7W0NmLuvsdva/1aQNYTAsxs47gQFdvqfYmlFy4B0E+356OlPA==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
@@ -3338,8 +3366,8 @@ packages:
   ajv@8.13.0:
     resolution: {integrity: sha512-PRA911Blj99jR5RMeTunVbNXMF6Lp4vZXnk5GQjcnUWUTsrXtekg/pnmFFI2u/I36Y/2bITGS30GZCXei6uNkA==}
 
-  alien-signals@1.0.4:
-    resolution: {integrity: sha512-DJqqQD3XcsaQcQ1s+iE2jDUZmmQpXwHiR6fCAim/w87luaW+vmLY8fMlrdkmRwzaFXhkxf3rqPCR59tKVv1MDw==}
+  alien-signals@0.4.14:
+    resolution: {integrity: sha512-itUAVzhczTmP2U5yX67xVpsbbOiquusbWVyA9N+sy6+r6YVbFkahXvNCeEPWEOMhwDYwbVbGHFkVL03N9I5g+Q==}
 
   ansi-colors@4.1.3:
     resolution: {integrity: sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw==}
@@ -7265,8 +7293,8 @@ packages:
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
 
-  vite-plugin-dts@4.5.1:
-    resolution: {integrity: sha512-Yo1dHT05B2nD47AVB7b0+wK1FPFpJJnUf/muRF7+tP+sbPFRhLs70TTRGwJw7NDBwAUAmSwhrD+ZPTe4P6Wv9w==}
+  vite-plugin-dts@4.5.3:
+    resolution: {integrity: sha512-P64VnD00dR+e8S26ESoFELqc17+w7pKkwlBpgXteOljFyT0zDwD8hH4zXp49M/kciy//7ZbVXIwQCekBJjfWzA==}
     peerDependencies:
       typescript: '*'
       vite: '*'
@@ -7521,6 +7549,9 @@ packages:
     peerDependencies:
       zod: ^3.18.0
 
+  zod@3.24.1:
+    resolution: {integrity: sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==}
+
   zod@3.24.2:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
@@ -7553,20 +7584,20 @@ snapshots:
       '@ai-sdk/provider-utils': 2.1.9(zod@3.24.2)
       zod: 3.24.2
 
-  '@ai-sdk/openai@1.1.15(zod@3.24.2)':
+  '@ai-sdk/openai@1.2.0(zod@3.24.1)':
     dependencies:
       '@ai-sdk/provider': 1.0.9
-      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.2)
-      zod: 3.24.2
+      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.1)
+      zod: 3.24.1
 
-  '@ai-sdk/provider-utils@2.1.10(zod@3.24.2)':
+  '@ai-sdk/provider-utils@2.1.10(zod@3.24.1)':
     dependencies:
       '@ai-sdk/provider': 1.0.9
       eventsource-parser: 3.0.0
       nanoid: 3.3.8
       secure-json-parse: 2.7.0
     optionalDependencies:
-      zod: 3.24.2
+      zod: 3.24.1
 
   '@ai-sdk/provider-utils@2.1.9(zod@3.24.2)':
     dependencies:
@@ -7595,15 +7626,15 @@ snapshots:
       react: 19.0.0
       zod: 3.24.2
 
-  '@ai-sdk/react@1.1.18(react@19.0.0)(zod@3.24.2)':
+  '@ai-sdk/react@1.1.20(react@19.0.0)(zod@3.24.1)':
     dependencies:
-      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.2)
-      '@ai-sdk/ui-utils': 1.1.16(zod@3.24.2)
+      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.1)
+      '@ai-sdk/ui-utils': 1.1.16(zod@3.24.1)
       swr: 2.3.2(react@19.0.0)
       throttleit: 2.1.0
     optionalDependencies:
       react: 19.0.0
-      zod: 3.24.2
+      zod: 3.24.1
 
   '@ai-sdk/ui-utils@1.1.15(zod@3.24.2)':
     dependencies:
@@ -7613,13 +7644,13 @@ snapshots:
     optionalDependencies:
       zod: 3.24.2
 
-  '@ai-sdk/ui-utils@1.1.16(zod@3.24.2)':
+  '@ai-sdk/ui-utils@1.1.16(zod@3.24.1)':
     dependencies:
       '@ai-sdk/provider': 1.0.9
-      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.2)
-      zod-to-json-schema: 3.24.1(zod@3.24.2)
+      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.1)
+      zod-to-json-schema: 3.24.1(zod@3.24.1)
     optionalDependencies:
-      zod: 3.24.2
+      zod: 3.24.1
 
   '@alloc/quick-lru@5.2.0': {}
 
@@ -8487,7 +8518,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@microsoft/api-extractor@7.51.0(@types/node@20.17.11)':
+  '@microsoft/api-extractor@7.51.1(@types/node@20.17.11)':
     dependencies:
       '@microsoft/api-extractor-model': 7.30.3(@types/node@20.17.11)
       '@microsoft/tsdoc': 0.15.1
@@ -9884,13 +9915,13 @@ snapshots:
       de-indent: 1.0.2
       he: 1.2.0
 
-  '@vue/language-core@2.2.4(typescript@5.7.3)':
+  '@vue/language-core@2.2.0(typescript@5.7.3)':
     dependencies:
       '@volar/language-core': 2.4.11
       '@vue/compiler-dom': 3.5.13
       '@vue/compiler-vue2': 2.7.16
       '@vue/shared': 3.5.13
-      alien-signals: 1.0.4
+      alien-signals: 0.4.14
       minimatch: 9.0.5
       muggle-string: 0.4.1
       path-browserify: 1.0.1
@@ -9977,17 +10008,17 @@ snapshots:
       react: 19.0.0
       zod: 3.24.2
 
-  ai@4.1.46(react@19.0.0)(zod@3.24.2):
+  ai@4.1.50(react@19.0.0)(zod@3.24.1):
     dependencies:
       '@ai-sdk/provider': 1.0.9
-      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.2)
-      '@ai-sdk/react': 1.1.18(react@19.0.0)(zod@3.24.2)
-      '@ai-sdk/ui-utils': 1.1.16(zod@3.24.2)
+      '@ai-sdk/provider-utils': 2.1.10(zod@3.24.1)
+      '@ai-sdk/react': 1.1.20(react@19.0.0)(zod@3.24.1)
+      '@ai-sdk/ui-utils': 1.1.16(zod@3.24.1)
       '@opentelemetry/api': 1.9.0
       jsondiffpatch: 0.6.0
     optionalDependencies:
       react: 19.0.0
-      zod: 3.24.2
+      zod: 3.24.1
 
   ajv-draft-04@1.0.0(ajv@8.13.0):
     optionalDependencies:
@@ -10018,7 +10049,7 @@ snapshots:
       require-from-string: 2.0.2
       uri-js: 4.4.1
 
-  alien-signals@1.0.4: {}
+  alien-signals@0.4.14: {}
 
   ansi-colors@4.1.3: {}
 
@@ -14987,12 +15018,12 @@ snapshots:
       - supports-color
       - terser
 
-  vite-plugin-dts@4.5.1(@types/node@20.17.11)(rollup@4.34.8)(typescript@5.7.3)(vite@6.2.0(@types/node@20.17.11)(jiti@2.4.2)(lightningcss@1.29.1)(tsx@4.19.3)(yaml@2.7.0)):
+  vite-plugin-dts@4.5.3(@types/node@20.17.11)(rollup@4.34.8)(typescript@5.7.3)(vite@6.2.0(@types/node@20.17.11)(jiti@2.4.2)(lightningcss@1.29.1)(tsx@4.19.3)(yaml@2.7.0)):
     dependencies:
-      '@microsoft/api-extractor': 7.51.0(@types/node@20.17.11)
+      '@microsoft/api-extractor': 7.51.1(@types/node@20.17.11)
       '@rollup/pluginutils': 5.1.4(rollup@4.34.8)
       '@volar/typescript': 2.4.11
-      '@vue/language-core': 2.2.4(typescript@5.7.3)
+      '@vue/language-core': 2.2.0(typescript@5.7.3)
       compare-versions: 6.1.1
       debug: 4.4.0(supports-color@5.5.0)
       kolorist: 1.8.0
@@ -15257,6 +15288,10 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
+  zod-to-json-schema@3.24.1(zod@3.24.1):
+    dependencies:
+      zod: 3.24.1
+
   zod-to-json-schema@3.24.1(zod@3.24.2):
     dependencies:
       zod: 3.24.2
@@ -15264,6 +15299,8 @@ snapshots:
   zod-validation-error@3.4.0(zod@3.24.2):
     dependencies:
       zod: 3.24.2
+
+  zod@3.24.1: {}
 
   zod@3.24.2: {}
 
