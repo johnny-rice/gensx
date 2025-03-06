@@ -906,6 +906,9 @@ importers:
       framer-motion:
         specifier: ^12.4.0
         version: 12.4.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      glob:
+        specifier: ^10.3.10
+        version: 10.4.5
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
