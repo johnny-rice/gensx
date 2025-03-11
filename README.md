@@ -111,6 +111,24 @@ Check out the [Quickstart Guide](https://gensx.com/docs/quickstart) to build you
 
 This repo contains a number of [examples](./examples) to help you get up and running with GenSX.
 
+Running an example:
+
+```bash
+# From the root of the repo
+
+# Install dependencies
+pnpm install
+
+# Run the example
+pnpm start:example <example-name>
+
+# or to run from the example directory
+pnpm build
+
+cd examples/<example-name>
+pnpm start
+```
+
 ### Basic Examples
 
 | Example                                                 | Description                                                      |
