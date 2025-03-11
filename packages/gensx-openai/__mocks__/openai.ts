@@ -25,7 +25,7 @@ export function createMockChatCompletionChunks(content: string) {
 }
 
 // Create a mock implementation for the chat.completions.create method
-const mockCreateMethod = vi
+export const mockCreateMethod = vi
   .fn()
   .mockImplementation((params: ChatCompletionCreateParams) => {
     // Handle streaming responses
@@ -81,6 +81,14 @@ const mockCreateMethod = vi
     }
     // Handle tool calls
     else if (params.tools && params.tools.length > 0) {
+      // Check if there's an output_schema tool in the tools array
+      const hasOutputSchemaTool = params.tools.some(
+        (tool) =>
+          typeof tool === "object" &&
+          "function" in tool &&
+          tool.function.name === "output_schema",
+      );
+
       // If there's already a tool response in the conversation
       if (
         params.messages.some(
@@ -94,6 +102,35 @@ const mockCreateMethod = vi
               message: {
                 role: "assistant",
                 content: "Final answer after tool execution",
+              },
+            },
+          ],
+        };
+      }
+
+      // If we have an output_schema tool, return a tool call for it
+      if (hasOutputSchemaTool) {
+        return {
+          choices: [
+            {
+              message: {
+                role: "assistant",
+                content: null,
+                tool_calls: [
+                  {
+                    id: "call_output_schema",
+                    type: "function",
+                    function: {
+                      name: "output_schema",
+                      arguments: JSON.stringify({
+                        output: {
+                          name: "Hello World",
+                          age: 42,
+                        },
+                      }),
+                    },
+                  },
+                ],
               },
             },
           ],
@@ -135,15 +172,19 @@ const mockCreateMethod = vi
   });
 
 // Create the mock OpenAI class
-const MockOpenAI = vi.fn().mockImplementation(() => {
-  return {
-    chat: {
-      completions: {
-        create: mockCreateMethod,
+const MockOpenAI = vi
+  .fn()
+  .mockImplementation((config: { baseURL?: string; apiKey: string }) => {
+    return {
+      baseURL: config.baseURL,
+      apiKey: config.apiKey,
+      chat: {
+        completions: {
+          create: mockCreateMethod,
+        },
       },
-    },
-  };
-});
+    };
+  });
 
 // Export both the default export and any named exports
 const originalModule = await vi.importActual("openai");
