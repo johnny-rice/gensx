@@ -1,10 +1,10 @@
-# GenSX Project Claude Memory
+# GenSX Project Guidelines
 
 <!-- BEGIN_MANAGED_SECTION -->
-<!-- WARNING: Everything between BEGIN_MANAGED_SECTION and END_MANAGED_SECTION will be overwritten when updating @gensx/claude-md -->
-<!-- Add your custom content outside of this section to preserve it during updates -->
+<!-- WARNING: Everything between BEGIN_MANAGED_SECTION and END_MANAGED_SECTION will be overwritten when updating @gensx/cline-rules -->
+<!-- Add your custom content outside of this section to preserve it during future updates -->
 
-This file serves as persistent memory for Claude when working with GenSX projects.
+This file serves as guidance for Cline when working with GenSX projects.
 
 ## Project Commands
 
@@ -58,7 +58,7 @@ const Greeting = gensx.Component<GreetingProps, string>(
   async ({ name, formatOutput = false }) => {
     const greeting = `Hello, ${name}!`;
     return formatOutput ? `## ${greeting}` : greeting;
-  },
+  }
 );
 ```
 
@@ -99,7 +99,7 @@ const ParentComponent = gensx.Component(
 ### OpenAI
 
 ```typescript
-<OpenAIProvider
+<OpenAIProvider 
   apiKey={process.env.OPENAI_API_KEY}
   defaultOptions={{ temperature: 0.7 }}
 />
@@ -108,7 +108,7 @@ const ParentComponent = gensx.Component(
 ### Anthropic
 
 ```typescript
-<AnthropicProvider
+<AnthropicProvider 
   apiKey={process.env.ANTHROPIC_API_KEY}
   defaultOptions={{ temperature: 0.7 }}
 />
@@ -119,13 +119,9 @@ const ParentComponent = gensx.Component(
 ```typescript
 const { Provider: MCPProvider } = createMCPServerContext({
   serverCommand: "npx",
-  serverArgs: ["-y", "@mcp-server/package"],
+  serverArgs: ["-y", "@mcp-server/package"]
 });
 ```
-
-## Notes
-
-Add project-specific notes here that you'd like Claude to remember between sessions.
 
 <!-- END_MANAGED_SECTION -->
 
