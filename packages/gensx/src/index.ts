@@ -27,6 +27,11 @@ export async function runCLI() {
     .argument("<project-directory>", "Directory to create the project in")
     .option("-t, --template <type>", "Template to use (ts)")
     .option("-f, --force", "Overwrite existing files", false)
+    .option("--skip-ide-rules", "Skip IDE rules selection", false)
+    .option(
+      "--ide-rules <rules>",
+      "Comma-separated list of IDE rules to install (cline,windsurf,claude,cursor)",
+    )
     .action(newProject);
 
   await program.parseAsync();
