@@ -11,6 +11,7 @@ import pc from "picocolors";
 
 import { logger } from "../logger.js";
 import { readConfig, saveState } from "../utils/config.js";
+import { saveProjectConfig } from "../utils/project-config.js";
 import { login } from "./login.js";
 
 const exec = promisify(execCallback);
@@ -208,6 +209,7 @@ export interface NewCommandOptions {
   skipLogin?: boolean;
   skipIdeRules?: boolean;
   ideRules?: string;
+  description?: string;
 }
 
 export async function newProject(
@@ -259,7 +261,7 @@ export async function newProject(
       const template = await loadTemplate(templateName);
       spinner.succeed();
 
-      const absoluteProjectPath = path.resolve(process.cwd(), projectPath);
+      const absoluteProjectPath = path.resolve(projectPath);
 
       // Create and validate project directory
       spinner.start("Creating project directory");
@@ -272,6 +274,17 @@ export async function newProject(
           `Directory "${absoluteProjectPath}" is not empty. Use --force to overwrite existing files.`,
         );
       }
+      spinner.succeed();
+
+      spinner.start("Creating project configuration file");
+      const projectName = path.basename(absoluteProjectPath);
+      await saveProjectConfig(
+        {
+          projectName,
+          description: options.description,
+        },
+        absoluteProjectPath,
+      );
       spinner.succeed();
 
       // Copy template files
@@ -365,8 +378,13 @@ To get started:
   ${projectPath !== "." ? pc.cyan(`cd ${projectPath}`) : ""}
   ${pc.cyan(template.runCommand)}
 
-Edit ${pc.cyan("src/index.tsx")} to start building your GenSX application.
-`);
+Edit ${pc.cyan("src/index.tsx")} to start building your GenSX application.`);
+
+      // When ready to deploy:
+      //   ${pc.cyan(`gensx deploy <file>`)}
+
+      // Your project name "${pc.bold(projectName)}" has been saved to gensx.yaml and will be used for deployment.
+      // `);
     } catch (error) {
       // If spinner is still spinning, stop it with failure
       if (spinner.isSpinning) {
@@ -376,7 +394,7 @@ Edit ${pc.cyan("src/index.tsx")} to start building your GenSX application.
     }
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error(pc.red(`\nError: ${error.message}`));
+      console.error(pc.red(`\nError: ${error.message}`), error.stack);
     } else {
       console.error(pc.red("\nAn unknown error occurred"));
     }
