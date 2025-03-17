@@ -1,0 +1,16 @@
+{
+  "name": "gensx-cli",
+  "version": "1.0.0",
+  "description": "This package is not published to npm. It is just a container of scripts to build the CLI binary.",
+  "private": true,
+  "scripts": {
+    "#test-comment": "this hangs locally for some reason, so only run in CI",
+    "test": "if [ \"$CI\" = \"true\" ]; then deno task compile:macos-x64; fi"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "deno": "^2.2.4"
+  }
+}
