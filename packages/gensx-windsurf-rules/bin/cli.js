@@ -1,29 +1,11 @@
-const path = require("path");
-
-// Get the paths we need to check
-const packagePath = path.resolve(process.cwd());
-const initCWD = process.env.INIT_CWD;
-
-// Check if we're in the monorepo by looking for a packages directory
-const isMonorepo = packagePath.includes(path.join("gensx", "packages"));
-
-// Skip if we're in the monorepo
-if (isMonorepo) {
-  console.log("Skipping postinstall script in monorepo environment");
-  process.exit(0);
-}
+#!/usr/bin/env node
 
 const fs = require("fs");
+const path = require("path");
 
 // Constants for managed section markers
 const BEGIN_MANAGED_SECTION = "<!-- BEGIN_MANAGED_SECTION -->";
 const END_MANAGED_SECTION = "<!-- END_MANAGED_SECTION -->";
-
-// Skip installation in production environments
-if (process.env.NODE_ENV === "production") {
-  console.log("Skipping Windsurf rules installation in production environment");
-  process.exit(0);
-}
 
 /**
  * Extract content between managed section markers
@@ -63,8 +45,8 @@ function updateManagedSection(existingContent, templateContent) {
 }
 
 try {
-  // Determine the app root directory (the directory where the application using this package is installed)
-  const appRootDir = process.env.INIT_CWD || process.cwd();
+  // Use current working directory as target
+  const targetDir = process.cwd();
 
   // Path to the template .windsurfrules file
   const templatePath = path.join(
@@ -74,8 +56,8 @@ try {
     ".windsurfrules",
   );
 
-  // Destination path in the app root
-  const destPath = path.join(appRootDir, ".windsurfrules");
+  // Destination path in the target directory
+  const destPath = path.join(targetDir, ".windsurfrules");
 
   // Ensure the template file exists
   if (!fs.existsSync(templatePath)) {
@@ -115,7 +97,7 @@ try {
   } else {
     // Create a new file from template if it doesn't exist
     fs.writeFileSync(destPath, templateContent);
-    console.log(`Installed Windsurf rules to ${destPath}`);
+    console.log(`✅ Installed Windsurf rules to ${destPath}`);
   }
 } catch (error) {
   console.error("Error installing Windsurf rules:", error.message);
