@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
 
 // Constants for managed section markers
 const BEGIN_MANAGED_SECTION = "<!-- BEGIN_MANAGED_SECTION -->";
@@ -12,7 +12,7 @@ const END_MANAGED_SECTION = "<!-- END_MANAGED_SECTION -->";
  * @param {string} content - File content
  * @returns {string|null} - Managed section content or null if not found
  */
-function extractManagedSection(content) {
+function extractManagedSection(content: string): string | null {
   const startIndex = content.indexOf(BEGIN_MANAGED_SECTION);
   const endIndex = content.indexOf(END_MANAGED_SECTION);
 
@@ -29,7 +29,10 @@ function extractManagedSection(content) {
  * @param {string} templateContent - Template file content
  * @returns {string} - Updated file content
  */
-function updateManagedSection(existingContent, templateContent) {
+function updateManagedSection(
+  existingContent: string,
+  templateContent: string,
+): string {
   const existingManagedSection = extractManagedSection(existingContent);
   const templateManagedSection = extractManagedSection(templateContent);
 
@@ -48,11 +51,14 @@ try {
   // Use current working directory as target
   const targetDir = process.cwd();
 
-  // Path to the template .clinerules file
-  const templatePath = path.join(__dirname, "..", "templates", ".clinerules");
+  // Path to the template .windsurfrules file
+  const url = new URL(import.meta.url);
+  const dirname = path.dirname(url.pathname);
+
+  const templatePath = path.join(dirname, "..", "templates", ".windsurfrules");
 
   // Destination path in the target directory
-  const destPath = path.join(targetDir, ".clinerules");
+  const destPath = path.join(targetDir, ".windsurfrules");
 
   // Ensure the template file exists
   if (!fs.existsSync(templatePath)) {
@@ -83,18 +89,22 @@ try {
     fs.writeFileSync(destPath, updatedContent);
 
     console.log(
-      `✅ Updated .clinerules to the latest version with managed sections.`,
+      `✅ Updated .windsurfrules to the latest version with managed sections.`,
     );
-    console.log(`ℹ️ Your previous file was backed up to .clinerules.backup`);
+    console.log(`ℹ️ Your previous file was backed up to .windsurfrules.backup`);
     console.log(
       `ℹ️ Add your custom content outside the managed section to preserve it during future updates.`,
     );
   } else {
     // Create a new file from template if it doesn't exist
     fs.writeFileSync(destPath, templateContent);
-    console.log(`✅ Installed Cline rules to ${destPath}`);
+    console.log(`✅ Installed Windsurf rules to ${destPath}`);
   }
 } catch (error) {
-  console.error("Error installing Cline rules:", error.message);
+  if (error instanceof Error) {
+    console.error("Error installing Windsurf rules:", error.message);
+  } else {
+    console.error("Error installing Windsurf rules:", error);
+  }
   process.exit(1);
 }

@@ -1,23 +1,18 @@
 #!/usr/bin/env node
 
-"use strict";
-
-const fs = require("fs-extra");
-const path = require("path");
-
-// Constants for managed section markers
-const BEGIN_MANAGED_SECTION = "<!-- BEGIN_MANAGED_SECTION -->";
-const END_MANAGED_SECTION = "<!-- END_MANAGED_SECTION -->";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 async function copyTemplate() {
   try {
     console.log("Installing GenSX Claude template...");
 
     // Get the directory of the package
-    const pkgDir = path.resolve(__dirname, "..");
+    const url = new URL(import.meta.url);
+    const dirname = path.dirname(url.pathname);
 
     // Path to the template directory
-    const templateDir = path.resolve(pkgDir, "templates");
+    const templateDir = path.join(dirname, "..", "templates");
 
     // Use current working directory as target
     const targetDir = process.cwd();
@@ -31,7 +26,7 @@ async function copyTemplate() {
     try {
       await fs.access(destination);
       fileExists = true;
-    } catch (error) {
+    } catch {
       // File doesn't exist
     }
 
@@ -48,11 +43,11 @@ async function copyTemplate() {
         }
 
         // Extract the managed section from the source template
-        const sourceStartMatch = sourceContent.match(
-          /<!-- BEGIN_MANAGED_SECTION -->/,
+        const sourceStartMatch = /<!-- BEGIN_MANAGED_SECTION -->/.exec(
+          sourceContent,
         );
-        const sourceEndMatch = sourceContent.match(
-          /<!-- END_MANAGED_SECTION -->/,
+        const sourceEndMatch = /<!-- END_MANAGED_SECTION -->/.exec(
+          sourceContent,
         );
 
         if (!sourceStartMatch || !sourceEndMatch) {
@@ -71,10 +66,10 @@ async function copyTemplate() {
         );
 
         // Check if destination file has managed section markers
-        const destStartMatch = destContent.match(
-          /<!-- BEGIN_MANAGED_SECTION -->/,
+        const destStartMatch = /<!-- BEGIN_MANAGED_SECTION -->/.exec(
+          destContent,
         );
-        const destEndMatch = destContent.match(/<!-- END_MANAGED_SECTION -->/);
+        const destEndMatch = /<!-- END_MANAGED_SECTION -->/.exec(destContent);
 
         if (destStartMatch && destEndMatch) {
           // If destination has managed section markers, update only that section
@@ -96,10 +91,10 @@ async function copyTemplate() {
           // If destination doesn't have managed section markers, it's from an older version or fully custom
           // Create a backup before replacing
           const backupPath = path.join(targetDir, "CLAUDE.md.backup");
-          await fs.copy(destination, backupPath);
+          await fs.copyFile(destination, backupPath);
 
           // Copy the new template
-          await fs.copy(source, destination);
+          await fs.copyFile(source, destination);
           console.log(
             "✅ Updated CLAUDE.md to the latest version with managed sections.",
           );
@@ -115,7 +110,7 @@ async function copyTemplate() {
       }
     } else {
       // File doesn't exist, create it
-      await fs.copy(source, destination);
+      await fs.copyFile(source, destination);
       console.log("✅ Created new CLAUDE.md template in project root.");
     }
   } catch (error) {
@@ -126,7 +121,4 @@ async function copyTemplate() {
 }
 
 // Run the script
-copyTemplate().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+await copyTemplate();

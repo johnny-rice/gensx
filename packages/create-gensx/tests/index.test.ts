@@ -98,13 +98,11 @@ suite("create-gensx", () => {
     const projectName = "ai-test-project";
     const projectPath = path.join(tempDir, projectName);
 
-    // Use the --ide-rules flag to specify assistants directly
     const options = {
       template: "ts",
       force: false,
       skipLogin: true,
-      // Specify all AI assistants directly
-      ideRules: "claude,cursor,cline,windsurf",
+      skipIdeRules: true,
     };
 
     // Create the project with AI assistant integrations
@@ -130,14 +128,16 @@ suite("create-gensx", () => {
     await exec("npm install", { cwd: projectPath });
 
     // Manually run the AI rules commands to simulate the npx behavior in tests
-    await exec(`node ${gensxClaudeMdPath}/bin/cli.js`, { cwd: projectPath });
-    await exec(`node ${gensxCursorRulesPath}/bin/cli.js`, { cwd: projectPath });
+    await exec(`node ${gensxClaudeMdPath}/dist/cli.js`, { cwd: projectPath });
+    await exec(`node ${gensxCursorRulesPath}/dist/cli.js`, {
+      cwd: projectPath,
+    });
     await exec(
-      `node ${path.resolve(__dirname, "../../gensx-cline-rules/bin/cli.js")}`,
+      `node ${path.resolve(__dirname, "../../gensx-cline-rules/dist/cli.js")}`,
       { cwd: projectPath },
     );
     await exec(
-      `node ${path.resolve(__dirname, "../../gensx-windsurf-rules/bin/cli.js")}`,
+      `node ${path.resolve(__dirname, "../../gensx-windsurf-rules/dist/cli.js")}`,
       { cwd: projectPath },
     );
 

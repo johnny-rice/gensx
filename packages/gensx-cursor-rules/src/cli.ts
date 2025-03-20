@@ -1,17 +1,15 @@
 #!/usr/bin/env node
 
-"use strict";
+import fs from "node:fs/promises";
+import path, { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const fs = require("fs-extra");
-const path = require("path");
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-async function installCursorRules() {
+async function installCursorRules(): Promise<void> {
   try {
-    // Get the directory of the package
-    const pkgDir = path.resolve(__dirname, "..");
-
-    // Path to the rules directory
-    const rulesDir = path.resolve(pkgDir, "rules");
+    // Path to the template .clinerules file
+    const rulesDir = path.join(__dirname, "..", "rules");
 
     // Use current working directory as target
     const targetDir = process.cwd();
@@ -20,7 +18,7 @@ async function installCursorRules() {
 
     // Create .cursor directory if it doesn't exist
     const cursorDir = path.join(targetDir, ".cursor");
-    await fs.ensureDir(cursorDir);
+    await fs.mkdir(cursorDir, { recursive: true });
 
     // Get list of rule files from the package
     const ruleFiles = await fs.readdir(rulesDir);
@@ -30,10 +28,10 @@ async function installCursorRules() {
     let updated = 0;
 
     // Get list of existing rule files
-    let existingFiles = [];
+    let existingFiles: string[] = [];
     try {
       existingFiles = await fs.readdir(cursorDir);
-    } catch (error) {
+    } catch {
       // If directory doesn't exist or isn't readable
     }
 
@@ -46,7 +44,7 @@ async function installCursorRules() {
       const fileExists = existingFiles.includes(file);
 
       // Copy the rule file
-      await fs.copy(source, destination, { overwrite: true });
+      await fs.copyFile(source, destination);
 
       if (fileExists) {
         updated++;
@@ -64,7 +62,4 @@ async function installCursorRules() {
 }
 
 // Run the installation
-installCursorRules().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+await installCursorRules();

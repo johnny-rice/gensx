@@ -2,13 +2,18 @@
   "name": "@gensx/windsurf-rules",
   "version": "0.1.3",
   "description": "Windsurf rules for GenSX projects",
-  "main": "index.js",
   "bin": {
-    "gensx-windsurf-rules": "./bin/cli.js"
+    "gensx-windsurf-rules": "./dist/cli.js"
   },
+  "type": "module",
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && chmod +x dist/cli.js",
+    "clean": "rm -rf dist",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:types": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -22,11 +27,17 @@
   ],
   "files": [
     "templates",
-    "bin"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
   },
   "author": "GenSX Inc.",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "catalog:packages",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
 }
