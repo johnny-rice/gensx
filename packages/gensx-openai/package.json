@@ -3,27 +3,23 @@
   "version": "0.1.17",
   "description": "OpenAI integration for GenSX.",
   "type": "module",
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.cjs"
-    }
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/gensx-inc/gensx.git",
     "directory": "packages/gensx-openai"
   },
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
-    "build": "tsup",
+    "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "test": "vitest run --coverage",
     "test:watch": "vitest watch",
@@ -44,22 +40,20 @@
   "author": "GenSX Team",
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@gensx/core": "^0.3.0",
-    "openai": "catalog:",
-    "zod": "catalog:",
-    "zod-to-json-schema": "catalog:"
+    "openai": "catalog:"
   },
   "devDependencies": {
-    "@gensx/core": "workspace:*",
     "@types/node": "catalog:packages",
     "@vitest/coverage-istanbul": "catalog:",
     "openai": "catalog:",
-    "vitest": "catalog:",
-    "zod": "catalog:",
-    "zod-to-json-schema": "catalog:"
+    "vitest": "catalog:"
   },
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@gensx/core": "workspace:*",
+    "zod": "catalog:",
+    "zod-to-json-schema": "catalog:"
+  }
 }

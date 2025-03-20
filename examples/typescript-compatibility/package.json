@@ -1,5 +1,5 @@
 {
-  "name": "@examples/commonjs-compatibility",
+  "name": "@examples/typescript-compatibility",
   "private": true,
   "version": "0.0.0",
   "engines": {
@@ -7,21 +7,19 @@
   },
   "scripts": {
     "dev": "nodemon",
-    "start:ts": "tsx index.tsx",
-    "start": "node ./dist/index.js",
-    "start:pure": "node ./pure-commonjs.js",
+    "start": "tsx index.tsx",
     "build": "tsc",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@gensx/core": "workspace:*",
-    "zod": "catalog:"
+    "@gensx/openai": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:examples",
     "nodemon": "catalog:",
     "tsx": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "5.1"
   }
 }
