@@ -1,5 +1,7 @@
 import type {
+  ComponentOpts,
   DeepJSXElement,
+  DefaultOpts,
   ExecutableValue,
   GsxComponent,
   GsxStreamComponent,
@@ -15,26 +17,14 @@ import { resolveDeep } from "./resolve.js";
 
 export const STREAMING_PLACEHOLDER = "[streaming in progress]";
 
-export interface ComponentOpts {
-  secretProps?: string[]; // Property paths to mask in checkpoints
-  secretOutputs?: boolean; // Whether to mask the output of the component
-  name?: string; // Allows you to override the name of the component
-  metadata?: Record<string, unknown>; // Metadata to attach to the component
-}
-
-// omit name from ComponentOpts
-export type DefaultOpts = Omit<ComponentOpts, "name">;
-
-export type WithComponentOpts<P> = P & {
-  componentOpts?: ComponentOpts;
-};
-
 export function Component<P extends object & { length?: never }, O>(
   name: string,
   fn: (props: P) => MaybePromise<O | DeepJSXElement<O> | JSX.Element>,
   defaultOpts?: DefaultOpts,
-): GsxComponent<WithComponentOpts<P>, O> {
-  const GsxComponent = async (props: WithComponentOpts<P>) => {
+): GsxComponent<P, O> {
+  const GsxComponentFn = async (
+    props: P & { componentOpts?: ComponentOpts },
+  ) => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (typeof props !== "object" || Array.isArray(props) || props === null) {
       throw new Error(`Component ${name} received non-object props.`);
@@ -98,33 +88,34 @@ export function Component<P extends object & { length?: never }, O>(
     }
   };
 
-  GsxComponent.run = (props: WithComponentOpts<P>) => {
-    return jsx(GsxComponent, props)();
+  GsxComponentFn.run = (props: P & { componentOpts?: ComponentOpts }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+    return jsx(GsxComponentFn as any, props)() as Promise<O>;
   };
 
   if (name) {
-    Object.defineProperty(GsxComponent, "name", {
+    Object.defineProperty(GsxComponentFn, "name", {
       value: name,
     });
   }
 
-  Object.defineProperty(GsxComponent, "__gsxFramework", {
+  Object.defineProperty(GsxComponentFn, "__gsxFramework", {
     value: true,
   });
 
   // Brand the component with its output type
-  return GsxComponent as GsxComponent<WithComponentOpts<P>, O>;
+  return GsxComponentFn as unknown as GsxComponent<P, O>;
 }
 
-export function StreamComponent<P>(
+export function StreamComponent<P extends object & { length?: never }>(
   name: string,
   fn: (
     props: P & { stream?: boolean },
   ) => MaybePromise<Streamable | JSX.Element>,
   defaultOpts?: DefaultOpts,
-): GsxStreamComponent<WithComponentOpts<P & { stream?: boolean }>> {
-  const GsxStreamComponent = async (
-    props: WithComponentOpts<P & { stream?: boolean }>,
+): GsxStreamComponent<P & { stream?: boolean }> {
+  const GsxStreamComponentFn = async (
+    props: P & { stream?: boolean; componentOpts?: ComponentOpts },
   ) => {
     const context = getCurrentContext();
     const workflowContext = context.getWorkflowContext();
@@ -216,27 +207,32 @@ export function StreamComponent<P>(
     }
   };
 
-  GsxStreamComponent.run = <T extends P & { stream?: boolean }>(
-    props: WithComponentOpts<T>,
-  ) => {
-    return jsx(GsxStreamComponent, props)();
+  GsxStreamComponentFn.run = <
+    T extends P & { stream?: boolean; componentOpts?: ComponentOpts },
+  >(
+    props: T,
+  ): Promise<T extends { stream: true } ? Streamable : string> => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+    return jsx(GsxStreamComponentFn as any, props)() as Promise<
+      T extends { stream: true } ? Streamable : string
+    >;
   };
 
   if (name) {
-    Object.defineProperty(GsxStreamComponent, "name", {
+    Object.defineProperty(GsxStreamComponentFn, "name", {
       value: name,
     });
   }
 
-  Object.defineProperty(GsxStreamComponent, "__gsxFramework", {
+  Object.defineProperty(GsxStreamComponentFn, "__gsxFramework", {
     value: true,
   });
 
-  Object.defineProperty(GsxStreamComponent, "__gsxStreamComponent", {
+  Object.defineProperty(GsxStreamComponentFn, "__gsxStreamComponent", {
     value: true,
   });
 
-  return GsxStreamComponent as GsxStreamComponent<
-    WithComponentOpts<P & { stream?: boolean }>
+  return GsxStreamComponentFn as unknown as GsxStreamComponent<
+    P & { stream?: boolean }
   >;
 }

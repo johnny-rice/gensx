@@ -3,18 +3,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { ExecutionContext, getCurrentContext, withContext } from "./context.js";
+import { ComponentProps } from "./index.js";
 import { resolveDeep } from "./resolve.js";
 import {
-  Args,
   ExecutableValue,
   MaybePromise,
   Primitive,
-  StreamArgs,
+  StreamComponentProps,
 } from "./types.js";
 
 export namespace JSX {
   export type ElementType = Element;
-  export type Element = (props: Args<any, unknown>) => MaybePromise<unknown>;
+  export type Element = (
+    props: ComponentProps<any, unknown>,
+  ) => MaybePromise<unknown>;
   export interface ElementChildrenAttribute {
     children: (
       output: unknown,
@@ -36,9 +38,9 @@ export const Fragment = (props: { children?: JSX.Element[] | JSX.Element }) => {
 
 export const jsx = <TOutput, TProps>(
   component: (
-    props: Args<TProps, TOutput> | StreamArgs<TProps>,
+    props: ComponentProps<TProps, TOutput> | StreamComponentProps<TProps>,
   ) => MaybePromise<TOutput>,
-  fullProps: Args<TProps, TOutput> | null,
+  fullProps: ComponentProps<TProps, TOutput> | null,
 ): (() => Promise<Awaited<TOutput> | Awaited<TOutput>[]>) => {
   // Only set name if children is a function and doesn't already have our naming pattern
   if (
@@ -63,8 +65,9 @@ export const jsx = <TOutput, TProps>(
     }
 
     // For regular components, we handle children separately
-    const { children, ...props } = fullProps ?? ({} as Args<TProps, TOutput>);
-    const rawResult = await component(props as Args<TProps, TOutput>);
+    const { children, ...props } =
+      fullProps ?? ({} as ComponentProps<TProps, TOutput>);
+    const rawResult = await component(props as ComponentProps<TProps, TOutput>);
     const result = await resolveDeep(rawResult);
 
     if (children) {

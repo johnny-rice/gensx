@@ -178,6 +178,48 @@ suite("component", () => {
     expect(iteratorConsumed).toBe(true);
   });
 
+  suite("type inference", () => {
+    test("props types are enforced for Component", async () => {
+      const TestComponent = gensx.Component<{ input: string }, string>(
+        "TestComponent",
+        async ({ input }) => {
+          await setTimeout(0);
+          return `Hello ${input}`;
+        },
+      );
+
+      // @ts-expect-error - This should is an error because foo is not a valid prop
+      await TestComponent.run({ input: "World", foo: "bar" });
+
+      // @ts-expect-error - This should is an error because foo is not a valid prop
+      await gensx.execute<string>(<TestComponent input="World" foo={"bar"} />);
+    });
+
+    test("props types and return types are enforced for StreamComponent", async () => {
+      const TestComponent = gensx.StreamComponent<{ input: string }>(
+        "TestComponent",
+        async function* ({ input }) {
+          await setTimeout(0);
+          return `Hello ${input}`;
+        },
+      );
+
+      // Verify that the return type is Streamable for streaming mode
+      const _stream: Streamable = await TestComponent.run({
+        input: "World",
+        stream: true,
+      });
+
+      // Verify that the return type is string for non-streaming mode
+      const _stream2: string = await TestComponent.run({
+        input: "World",
+      });
+
+      // @ts-expect-error - This should is an error because foo is not a valid prop
+      await gensx.execute<string>(<TestComponent input="World" foo={"bar"} />);
+    });
+  });
+
   suite("Component.run", () => {
     test("executes component", async () => {
       const TestComponent = gensx.Component<{ input: string }, string>(
@@ -341,7 +383,6 @@ suite("component", () => {
       const WrapperComponent = gensx.Component<{ input: string }, string>(
         "WrapperComponent",
         async ({ input }) => {
-          // No need for type assertion since it's correctly typed as string
           const result = await TestStreamComponent.run({
             input,
             componentOpts: { name: "RenamedStreamComponent" },
@@ -352,7 +393,8 @@ suite("component", () => {
 
       const { result, checkpoints } =
         await executeWorkflowWithCheckpoints<string>(
-          <WrapperComponent input="World" />,
+          // @ts-expect-error - This should be an error because foo is not a valid prop
+          <WrapperComponent input="World" foo="bar" />,
         );
 
       expect(result).toBe("Hello World");

@@ -58,8 +58,18 @@ export type ExecutableValue<T = unknown> =
   | T[]
   | Record<string, T>;
 
-// Component props as a type alias instead of interface
-export type Args<P, O> = P & {
+export interface ComponentOpts {
+  secretProps?: string[]; // Property paths to mask in checkpoints
+  secretOutputs?: boolean; // Whether to mask the output of the component
+  name?: string; // Allows you to override the name of the component
+  metadata?: Record<string, unknown>; // Metadata to attach to the component
+}
+
+// omit name from ComponentOpts
+export type DefaultOpts = Omit<ComponentOpts, "name">;
+
+export type ComponentProps<P, O> = P & {
+  componentOpts?: ComponentOpts;
   children?:
     | ((output: O) => MaybePromise<ExecutableValue<O>>)
     | ((output: O) => void)
@@ -73,7 +83,7 @@ export type Args<P, O> = P & {
  * - A promise of either of the above
  */
 export type GsxComponent<P, O> = ((
-  props: Args<P, O>,
+  props: ComponentProps<P, O>,
 ) => MaybePromise<
   O extends (infer Item)[]
     ? DeepJSXElement<O> | GsxArray<Item> | Item[] | (Item | Element)[]
@@ -86,37 +96,50 @@ export type GsxComponent<P, O> = ((
   readonly __brand: "gensx-component";
   readonly __outputType: O;
   readonly __rawProps: P;
-  run: (props: P) => MaybePromise<O>;
+  run: (props: P & { componentOpts?: ComponentOpts }) => MaybePromise<O>;
 };
 
 export type Streamable =
   | AsyncIterableIterator<string>
   | IterableIterator<string>;
 
-type StreamChildrenType<T> = T extends { stream: true }
-  ?
-      | ((output: Streamable) => MaybePromise<ExecutableValue | Primitive>)
-      | ((output: Streamable) => void)
-      | ((output: Streamable) => Promise<void>)
-  :
-      | ((output: string) => MaybePromise<ExecutableValue | Primitive>)
-      | ((output: string) => void)
-      | ((output: string) => Promise<void>);
+export type StreamChildrenType<T> =
+  | ((
+      output: T extends { stream: true } ? Streamable : string,
+    ) => MaybePromise<ExecutableValue | Primitive>)
+  | ((output: T extends { stream: true } ? Streamable : string) => void)
+  | ((
+      output: T extends { stream: true } ? Streamable : string,
+    ) => Promise<void>);
 
-export type StreamArgs<P> = P & {
+export type StreamComponentProps<P> = P & {
   stream?: boolean;
+  componentOpts?: ComponentOpts;
   children?: StreamChildrenType<P>;
 };
 
 export type GsxStreamComponent<P> = (<T extends P & { stream?: boolean }>(
-  props: StreamArgs<T>,
+  props: StreamComponentProps<
+    // This is necessary to disallow extra props. Because of the extends statement above,
+    // typescript would allow props that have all the necessary keys, but also have extra keys.
+    // We want to prevent that, as it can be surprising for the developer.
+    // This hack is not necessary for the Component type because we don't use extends in the same way.
+    T & Record<Exclude<keyof T, keyof StreamComponentProps<P>>, never>
+  >,
 ) => MaybePromise<
   | DeepJSXElement<T extends { stream: true } ? Streamable : string>
   | ExecutableValue
->) & {
-  run: <T extends P & { stream?: boolean }>(
-    props: T,
-  ) => MaybePromise<T extends { stream: true } ? Streamable : string>;
+>) /*
+ * Use branding to preserve output type information.
+ * This allows direct access to the output type O while maintaining
+ * compatibility with the more flexible JSX composition system.
+ */ & {
+  readonly __brand: "gensx-stream-component";
+  readonly __outputType: Streamable;
+  readonly __rawProps: P;
+  run: <U extends P & { stream?: boolean; componentOpts?: ComponentOpts }>(
+    props: U,
+  ) => MaybePromise<U extends { stream: true } ? Streamable : string>;
 };
 
 export interface Context<T> {
