@@ -7,11 +7,11 @@ export * from "./database/types.js";
 export * from "./database/context.js";
 export { DatabaseProvider } from "./database/provider.js";
 
+export * from "./search/types.js";
+export * from "./search/context.js";
+export { SearchProvider } from "./search/provider.js";
+
 // Re-export for convenience
 export { useBlob, useBlobStorage } from "./blob/context.js";
 export { useDatabase, useDatabaseStorage } from "./database/context.js";
-
-// export * from "./vector/types.js";
-// export * from "./vector/context.js";
-// export { VectorProvider } from "./vector/provider.js";
-// export { useVectorStore, useVectorCollection } from "./vector/context.js";
+export { useSearch, useSearchStorage } from "./search/context.js";
