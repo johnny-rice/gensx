@@ -471,7 +471,14 @@ export class SearchStorage implements ISearchStorage {
     }
   }
 
-  async listNamespaces(options?: { prefix?: string }): Promise<string[]> {
+  async listNamespaces(options?: {
+    prefix?: string;
+    limit?: number;
+    cursor?: string;
+  }): Promise<{
+    namespaces: string[];
+    nextCursor?: string;
+  }> {
     try {
       // Normalize prefix by removing trailing slash
       const normalizedPrefix = options?.prefix?.replace(/\/$/, "");
@@ -480,6 +487,14 @@ export class SearchStorage implements ISearchStorage {
 
       if (normalizedPrefix) {
         url.searchParams.append("prefix", normalizedPrefix);
+      }
+
+      if (options?.limit) {
+        url.searchParams.append("limit", options.limit.toString());
+      }
+
+      if (options?.cursor) {
+        url.searchParams.append("cursor", options.cursor);
       }
 
       const response = await fetch(url.toString(), {
@@ -491,6 +506,7 @@ export class SearchStorage implements ISearchStorage {
 
       const apiResponse = (await response.json()) as SearchAPIResponse<{
         namespaces: string[];
+        nextCursor?: string;
       }>;
 
       if (!response.ok || apiResponse.status === "error") {
@@ -501,7 +517,7 @@ export class SearchStorage implements ISearchStorage {
         throw new SearchResponseError("No data returned from API");
       }
 
-      return apiResponse.data.namespaces;
+      return apiResponse.data;
     } catch (err) {
       if (!(err instanceof SearchError)) {
         throw handleApiError(err, "listNamespaces");
