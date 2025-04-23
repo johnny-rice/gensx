@@ -6,6 +6,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { Readable } from "node:stream";
 
+import { fromBase64UrlSafe, toBase64UrlSafe } from "../utils.js";
 import {
   Blob,
   BlobConflictError,
@@ -17,6 +18,8 @@ import {
   BlobResponse,
   BlobStorage,
   DeleteBlobResult,
+  ListBlobsOptions,
+  ListBlobsResponse,
 } from "./types.js";
 
 /**
@@ -631,23 +634,32 @@ export class FileSystemBlobStorage implements BlobStorage {
   }
 
   /**
-   * List all blobs with the given prefix
-   * @param prefix Optional prefix to filter blobs
-   * @returns An array of blob keys
+   * List all blobs with optional pagination
+   * @param options Options for listing blobs including prefix and pagination
+   * @returns A paginated list of blob keys
    * @throws BlobError if there's an error listing blobs
    */
-  async listBlobs(prefix?: string): Promise<string[]> {
+  async listBlobs(options?: ListBlobsOptions): Promise<ListBlobsResponse> {
     try {
+      const {
+        prefix = "",
+        limit = 100,
+        cursor = undefined,
+      } = (options ?? {}) as {
+        prefix?: string;
+        limit?: number;
+        cursor?: string;
+      };
       // Normalize prefixes by removing trailing slashes
       const normalizedDefaultPrefix = this.defaultPrefix?.replace(/\/$/, "");
-      const normalizedPrefix = prefix?.replace(/\/$/, "");
+      const normalizedPrefix = prefix.replace(/\/$/, "");
 
       // Build the search prefix
       const searchPrefix = normalizedDefaultPrefix
         ? normalizedPrefix
           ? `${normalizedDefaultPrefix}/${normalizedPrefix}`
           : normalizedDefaultPrefix
-        : (normalizedPrefix ?? "");
+        : normalizedPrefix;
 
       const searchPath = path.join(this.rootDir, searchPrefix);
 
@@ -656,7 +668,7 @@ export class FileSystemBlobStorage implements BlobStorage {
         await fs.access(searchPath);
       } catch (err) {
         if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-          return []; // Directory doesn't exist
+          return { keys: [], nextCursor: null }; // Directory doesn't exist
         }
         throw handleFsError(err, "listBlobs:access", searchPath);
       }
@@ -681,14 +693,14 @@ export class FileSystemBlobStorage implements BlobStorage {
           }
         }
 
-        return files;
+        return files.sort(); // Sort for consistent pagination
       };
 
-      const allFiles = await listFilesRecursively(searchPath, this.rootDir);
+      let allFiles = await listFilesRecursively(searchPath, this.rootDir);
 
       // Remove default prefix from results if it exists
       if (normalizedDefaultPrefix) {
-        return allFiles
+        allFiles = allFiles
           .filter(
             (file) =>
               file === normalizedDefaultPrefix ||
@@ -701,7 +713,28 @@ export class FileSystemBlobStorage implements BlobStorage {
           );
       }
 
-      return allFiles;
+      // Handle cursor-based pagination
+      let startIndex = 0;
+      if (cursor) {
+        const decodedCursor = fromBase64UrlSafe(cursor);
+        startIndex = allFiles.findIndex((file) => file > decodedCursor);
+        if (startIndex === -1) startIndex = allFiles.length;
+      }
+
+      // Handle limit
+      const endIndex = Math.min(startIndex + limit, allFiles.length);
+      const items = allFiles.slice(startIndex, endIndex);
+
+      // Generate next cursor
+      const nextCursor =
+        endIndex < allFiles.length
+          ? toBase64UrlSafe(allFiles[endIndex - 1])
+          : null;
+
+      return {
+        keys: items,
+        nextCursor,
+      };
     } catch (err) {
       throw handleFsError(err, "listBlobs", this.rootDir);
     }
