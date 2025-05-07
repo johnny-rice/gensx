@@ -1,5 +1,3 @@
-import fs from "node:fs";
-
 import axios from "axios";
 import { Definition } from "typescript-json-schema";
 import { afterEach, beforeEach, expect, it, suite, vi } from "vitest";
@@ -11,16 +9,22 @@ import * as envConfig from "../../src/utils/env-config.js";
 import * as projectConfig from "../../src/utils/project-config.js";
 
 // Mock dependencies
-vi.mock("node:fs", async (importOriginal) => {
-  const actual = await importOriginal<typeof fs>();
+vi.mock("node:fs", async () => {
+  const actual = (await vi.importActual("node:fs")) as unknown;
+  const actualTyped = actual as typeof import("node:fs") & {
+    default?: Record<string, unknown>;
+  };
   return {
-    ...actual,
+    ...actualTyped,
     default: {
+      ...(actualTyped.default ?? {}),
       createReadStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
       readFileSync: vi
         .fn()
         .mockReturnValue(JSON.stringify({ version: "1.0.0" })),
     },
+    createReadStream: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+    readFileSync: vi.fn().mockReturnValue(JSON.stringify({ version: "1.0.0" })),
   };
 });
 
@@ -79,9 +83,9 @@ vi.mock("form-data", () => {
 });
 
 // Mock process.exit
-const mockExit = vi
-  .spyOn(process, "exit")
-  .mockImplementation(() => undefined as never);
+const mockExit = vi.spyOn(process, "exit").mockImplementation((code) => {
+  throw new Error(`process.exit unexpectedly called with "${code}"`);
+});
 
 // Mock console.error to prevent output during tests
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -90,7 +94,7 @@ vi.spyOn(console, "error").mockImplementation(() => {});
 // Reset mocks
 afterEach(() => {
   vi.resetAllMocks();
-  mockExit.mockReset();
+  mockExit.mockRestore();
 });
 
 suite("deploy command", () => {
@@ -322,9 +326,9 @@ suite("deploy command", () => {
     // Mock empty project config
     vi.mocked(projectConfig.readProjectConfig).mockResolvedValue(null);
 
-    await deploy("workflow.ts", {});
-
-    expect(mockExit).toHaveBeenCalledWith(1);
+    await expect(deploy("workflow.ts", {})).rejects.toThrow(
+      'process.exit unexpectedly called with "1"',
+    );
     expect(console.error).toHaveBeenCalledWith(
       expect.stringContaining(
         "No project name found. Either specify --project or create a gensx.yaml file with a 'projectName' field",

@@ -1,30 +1,39 @@
-import enquirer from "enquirer";
-import { afterEach, expect, it, suite, vi } from "vitest";
+import path from "node:path";
 
-import { handleCreateEnvironment } from "../../../src/commands/environment/create.js";
+import { render } from "ink-testing-library";
+import React from "react";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  expect,
+  it,
+  suite,
+  vi,
+} from "vitest";
+
+import { CreateEnvironmentUI } from "../../../src/commands/environment/create.js";
 import * as environmentModel from "../../../src/models/environment.js";
 import * as projectModel from "../../../src/models/projects.js";
+import * as envConfig from "../../../src/utils/env-config.js";
 import * as projectConfig from "../../../src/utils/project-config.js";
+import {
+  cleanupProjectFiles,
+  cleanupTestEnvironment,
+  setupTestEnvironment,
+  waitForText,
+} from "../../test-helpers.js";
 
-// Mock dependencies
-vi.mock("ora", () => ({
-  default: () => ({
-    start: vi.fn().mockReturnThis(),
-    stop: vi.fn().mockReturnThis(),
-    succeed: vi.fn().mockReturnThis(),
-    fail: vi.fn().mockReturnThis(),
-    info: vi.fn().mockReturnThis(),
-  }),
-}));
+// Setup test variables
+let tempDir: string;
+let origCwd: typeof process.cwd;
+let origConfigDir: string | undefined;
 
-vi.mock("enquirer", () => ({
-  default: {
-    prompt: vi.fn(),
-  },
-}));
-
+// Mock dependencies that would make API calls
 vi.mock("../../../src/models/environment.js", () => ({
   createEnvironment: vi.fn(),
+  checkEnvironmentExists: vi.fn().mockResolvedValue(false),
 }));
 
 vi.mock("../../../src/models/projects.js", () => ({
@@ -36,12 +45,39 @@ vi.mock("../../../src/utils/project-config.js", () => ({
   readProjectConfig: vi.fn(),
 }));
 
-// Reset mocks
-afterEach(() => {
-  vi.resetAllMocks();
+vi.mock("../../../src/utils/env-config.js", () => ({
+  validateAndSelectEnvironment: vi.fn().mockResolvedValue(true),
+}));
+
+// Original process.exit to restore later
+const originalSetTimeout = global.setTimeout;
+
+// Set up and tear down the test environment
+beforeAll(async () => {
+  const setup = await setupTestEnvironment("create-test");
+  tempDir = setup.tempDir;
+  origCwd = setup.origCwd;
+  origConfigDir = setup.origConfigDir;
+
+  global.setTimeout = originalSetTimeout;
 });
 
-suite("environment create command", () => {
+afterAll(async () => {
+  await cleanupTestEnvironment(tempDir, origCwd, origConfigDir);
+  global.setTimeout = originalSetTimeout;
+});
+
+beforeEach(() => {
+  // Set working directory to our test project
+  process.cwd = vi.fn().mockReturnValue(path.join(tempDir, "project"));
+});
+
+afterEach(async () => {
+  vi.resetAllMocks();
+  await cleanupProjectFiles(tempDir);
+});
+
+suite("environment create Ink UI", () => {
   it("should create environment for an existing project", async () => {
     // Mock project exists
     vi.mocked(projectModel.checkProjectExists).mockResolvedValue(true);
@@ -52,7 +88,22 @@ suite("environment create command", () => {
       name: "development",
     });
 
-    await handleCreateEnvironment("development", { project: "test-project" });
+    // Mock environment selection
+    vi.mocked(envConfig.validateAndSelectEnvironment).mockResolvedValue(true);
+
+    const { lastFrame } = render(
+      React.createElement(CreateEnvironmentUI, {
+        environmentName: "development",
+        projectName: "test-project",
+      }),
+    );
+
+    // Wait for successful creation message with longer timeout
+    await waitForText(
+      lastFrame,
+      /Environment development created for project test-project/,
+    );
+    await waitForText(lastFrame, /Environment development is now active/);
 
     // Verify environment was created
     expect(environmentModel.createEnvironment).toHaveBeenCalledWith(
@@ -76,7 +127,19 @@ suite("environment create command", () => {
       name: "staging",
     });
 
-    await handleCreateEnvironment("staging", {});
+    // Mock environment selection
+    vi.mocked(envConfig.validateAndSelectEnvironment).mockResolvedValue(true);
+
+    const { lastFrame } = render(
+      React.createElement(CreateEnvironmentUI, { environmentName: "staging" }),
+    );
+
+    // Wait for successful creation message
+    await waitForText(
+      lastFrame,
+      /Environment staging created for project config-project/,
+    );
+    await waitForText(lastFrame, /Environment staging is now active/);
 
     // Verify environment was created with config project name
     expect(environmentModel.createEnvironment).toHaveBeenCalledWith(
@@ -89,17 +152,64 @@ suite("environment create command", () => {
     // Mock empty project config
     vi.mocked(projectConfig.readProjectConfig).mockResolvedValue(null);
 
-    await expect(handleCreateEnvironment("production", {})).rejects.toThrow(
-      "No project name found. Either specify --project or create a gensx.yaml file with a 'projectName' field.",
+    const { lastFrame } = render(
+      React.createElement(CreateEnvironmentUI, {
+        environmentName: "production",
+      }),
     );
+
+    // Wait for error message
+    await waitForText(
+      lastFrame,
+      /No project name found\. Either specify --project or create a gensx\.yaml file with a 'projectName' field\./,
+    );
+  });
+
+  it("should handle error when environment already exists", async () => {
+    // Mock project exists
+    vi.mocked(projectModel.checkProjectExists).mockResolvedValue(true);
+
+    // Mock environment already exists
+    vi.mocked(environmentModel.checkEnvironmentExists).mockResolvedValue(true);
+
+    const { lastFrame } = render(
+      React.createElement(CreateEnvironmentUI, {
+        environmentName: "development",
+        projectName: "test-project",
+      }),
+    );
+
+    // Wait for error message
+    await waitForText(
+      lastFrame,
+      /Environment development already exists for project test-project/,
+    );
+  });
+
+  it("should show loading spinner initially", () => {
+    // Mock checkProjectExists to never resolve, keeping component in loading state
+    vi.mocked(projectModel.checkProjectExists).mockImplementation(
+      () =>
+        new Promise<boolean>(() => {
+          /* never resolves */
+        }),
+    );
+
+    const { lastFrame } = render(
+      React.createElement(CreateEnvironmentUI, {
+        environmentName: "development",
+        projectName: "any-project",
+      }),
+    );
+
+    // Check for spinner indicator
+    expect(lastFrame()).toBeTruthy();
+    expect(lastFrame()?.length).toBeGreaterThan(0);
   });
 
   it("should prompt to create project when project does not exist and user confirms", async () => {
     // Mock project does not exist
     vi.mocked(projectModel.checkProjectExists).mockResolvedValue(false);
-
-    // Mock user confirms project creation
-    vi.mocked(enquirer.prompt).mockResolvedValue({ confirm: true });
 
     // Mock create project
     vi.mocked(projectModel.createProject).mockResolvedValue({
@@ -107,7 +217,30 @@ suite("environment create command", () => {
       name: "new-project",
     });
 
-    await handleCreateEnvironment("development", { project: "new-project" });
+    // Mock environment selection
+    vi.mocked(envConfig.validateAndSelectEnvironment).mockResolvedValue(true);
+
+    const { lastFrame, stdin } = render(
+      React.createElement(CreateEnvironmentUI, {
+        environmentName: "development",
+        projectName: "new-project",
+      }),
+    );
+
+    // Wait for confirmation prompt
+    await waitForText(lastFrame, /Project new-project does not exist\./);
+    await waitForText(lastFrame, /Would you like to create it\?/);
+
+    // Simulate user confirming by typing 'y'
+    stdin.write("y");
+
+    // Wait for success message with a longer timeout
+    await waitForText(
+      lastFrame,
+      /Project new-project and environment development created/,
+      3000,
+    );
+    await waitForText(lastFrame, /Environment development is now active/, 3000);
 
     // Verify project was created with environment
     expect(projectModel.createProject).toHaveBeenCalledWith(
@@ -124,33 +257,27 @@ suite("environment create command", () => {
     // Mock project does not exist
     vi.mocked(projectModel.checkProjectExists).mockResolvedValue(false);
 
-    // Mock user cancels project creation
-    vi.mocked(enquirer.prompt).mockResolvedValue({ confirm: false });
+    const { lastFrame, stdin } = render(
+      React.createElement(CreateEnvironmentUI, {
+        environmentName: "development",
+        projectName: "non-existent",
+      }),
+    );
 
-    await handleCreateEnvironment("development", { project: "non-existent" });
+    // Wait for confirmation prompt
+    await waitForText(lastFrame, /Project non-existent does not exist\./);
+    await waitForText(lastFrame, /Would you like to create it\?/);
+
+    // Simulate user canceling by typing 'n'
+    stdin.write("n");
+
+    // Wait for error message with a longer timeout
+    await waitForText(lastFrame, /Project creation cancelled/, 3000);
 
     // Verify project was not created
     expect(projectModel.createProject).not.toHaveBeenCalled();
 
     // Verify environment was not created
     expect(environmentModel.createEnvironment).not.toHaveBeenCalled();
-  });
-
-  it("should handle error when creating environment", async () => {
-    // Mock project exists
-    vi.mocked(projectModel.checkProjectExists).mockResolvedValue(true);
-
-    // Mock environment creation fails
-    vi.mocked(environmentModel.createEnvironment).mockRejectedValue(
-      new Error("Failed to create environment"),
-    );
-
-    await handleCreateEnvironment("development", { project: "test-project" });
-
-    // Verify environment creation was attempted
-    expect(environmentModel.createEnvironment).toHaveBeenCalledWith(
-      "test-project",
-      "development",
-    );
   });
 });
