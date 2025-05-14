@@ -14,6 +14,7 @@ export default defineConfig({
     silent: "passed-only",
     include: ["./tests/**/*.test.ts"],
     env: loadEnv("test", process.cwd(), ""),
+    setupFiles: ["./tests/setup.ts"],
     coverage: {
       provider: "istanbul",
       reporter: ["text-summary", "json-summary", "json"],
@@ -35,11 +36,4 @@ export default defineConfig({
       extension: [".ts"],
     },
   },
-  // TODO: Get swc working to speed things up
-  // plugins: [
-  //   swc.vite({
-  //     module: { type: "es6" },
-  //     tsconfigFile: "./tsconfig.json",
-  //   }),
-  // ],
 });

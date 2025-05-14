@@ -1,4 +1,5 @@
-import { Box, Text, useApp, useInput } from "ink";
+import { Box, Text, useApp } from "ink";
+import SelectInput from "ink-select-input";
 import { useEffect, useState } from "react";
 
 import { ErrorMessage } from "../../components/ErrorMessage.js";
@@ -8,6 +9,7 @@ import {
   createEnvironment,
 } from "../../models/environment.js";
 import { checkProjectExists, createProject } from "../../models/projects.js";
+import { getAuth } from "../../utils/config.js";
 import { validateAndSelectEnvironment } from "../../utils/env-config.js";
 import { readProjectConfig } from "../../utils/project-config.js";
 
@@ -52,6 +54,12 @@ function useCreateEnvironment(
 
     async function initializeEnvironment() {
       try {
+        // Check authentication first
+        const authConfig = await getAuth();
+        if (!authConfig) {
+          throw new Error("Not authenticated. Please run 'gensx login' first.");
+        }
+
         // Resolve project name
         let resolvedProjectName = initialProjectName;
 
@@ -103,6 +111,10 @@ function useCreateEnvironment(
           }
 
           setStep("done");
+
+          setTimeout(() => {
+            exit();
+          }, 100);
         }
       } catch (err) {
         if (!mounted) return;
@@ -204,16 +216,6 @@ export function CreateEnvironmentUI({
   const { loading, error, projectName, step, setShouldCreate, projectCreated } =
     useCreateEnvironment(environmentName, initialProjectName);
 
-  useInput((input, key) => {
-    if (step === "confirming_project_creation") {
-      if (input === "y" || input === "Y" || key.return) {
-        setShouldCreate(true);
-      } else if (input === "n" || input === "N") {
-        setShouldCreate(false);
-      }
-    }
-  });
-
   if (error) {
     return <ErrorMessage message={error.message} />;
   }
@@ -223,14 +225,28 @@ export function CreateEnvironmentUI({
   }
 
   if (step === "confirming_project_creation") {
+    const items = [
+      { label: "Yes", value: "yes" },
+      { label: "No", value: "no" },
+    ];
+
     return (
-      <Box flexDirection="column" gap={1}>
+      <Box flexDirection="column">
+        <Box paddingBottom={1}>
+          <Text>
+            <Text color="cyan">ℹ</Text> Project{" "}
+            <Text color="cyan">{projectName}</Text> does not exist.
+          </Text>
+        </Box>
         <Text>
-          Project <Text color="cyan">{projectName}</Text> does not exist.
+          <Text color="blue">➜</Text> Would you like to create it?
         </Text>
-        <Text>
-          Would you like to create it? <Text color="gray">(y/N)</Text>
-        </Text>
+        <SelectInput
+          items={items}
+          onSelect={(item) => {
+            setShouldCreate(item.value === "yes");
+          }}
+        />
       </Box>
     );
   }
@@ -242,7 +258,7 @@ export function CreateEnvironmentUI({
           {projectCreated && (
             <Text>
               <Text bold color="green">
-                ✓
+                ✔
               </Text>{" "}
               Project <Text color="cyan">{projectName}</Text> and environment{" "}
               <Text color="green">{environmentName}</Text> created
@@ -251,7 +267,7 @@ export function CreateEnvironmentUI({
           {!projectCreated && (
             <Text>
               <Text bold color="green">
-                ✓
+                ✔
               </Text>{" "}
               Environment <Text color="green">{environmentName}</Text> created
               for project <Text color="cyan">{projectName}</Text>
@@ -259,7 +275,7 @@ export function CreateEnvironmentUI({
           )}
           <Text>
             <Text bold color="green">
-              ✓
+              ✔
             </Text>{" "}
             Environment <Text color="green">{environmentName}</Text> is now
             active

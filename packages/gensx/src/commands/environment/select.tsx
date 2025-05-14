@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 
 import { ErrorMessage } from "../../components/ErrorMessage.js";
 import { LoadingSpinner } from "../../components/LoadingSpinner.js";
-import { checkProjectExists } from "../../models/projects.js";
+import { useProjectName } from "../../hooks/useProjectName.js";
+import { getAuth } from "../../utils/config.js";
 import { validateAndSelectEnvironment } from "../../utils/env-config.js";
-import { readProjectConfig } from "../../utils/project-config.js";
 
 interface Props {
   environmentName: string;
@@ -26,48 +26,40 @@ function useSelectEnvironment(
 ): UseSelectEnvironmentResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [projectName, setProjectName] = useState<string | null>(null);
   const [environmentName, setEnvironmentName] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
   const { exit } = useApp();
+  const {
+    loading: projectLoading,
+    error: projectError,
+    projectName,
+  } = useProjectName(initialProjectName);
 
   useEffect(() => {
     let mounted = true;
 
     async function selectEnvironmentFlow() {
-      try {
-        // Resolve project name
-        let resolvedProjectName = initialProjectName;
-        if (!resolvedProjectName) {
-          const projectConfig = await readProjectConfig(process.cwd());
-          if (!projectConfig?.projectName) {
-            throw new Error(
-              "No project name found. Either specify --project or create a gensx.yaml file with a 'projectName' field.",
-            );
-          }
-          resolvedProjectName = projectConfig.projectName;
-        }
+      if (!projectName) return;
 
-        // Check if project exists
-        const projectExists = await checkProjectExists(resolvedProjectName);
-        if (!projectExists) {
-          throw new Error(`Project ${resolvedProjectName} does not exist.`);
+      try {
+        // Check authentication first
+        const authConfig = await getAuth();
+        if (!authConfig) {
+          throw new Error("Not authenticated. Please run 'gensx login' first.");
         }
 
         const success = await validateAndSelectEnvironment(
-          resolvedProjectName,
+          projectName,
           envName,
         );
 
         if (!success) {
           throw new Error(
-            `Environment ${envName} does not exist in project ${resolvedProjectName}`,
+            `Environment ${envName} does not exist in project ${projectName}`,
           );
         }
 
         if (mounted) {
-          setProjectName(resolvedProjectName);
           setEnvironmentName(envName);
           setSuccess(true);
           setLoading(false);
@@ -89,9 +81,15 @@ function useSelectEnvironment(
     return () => {
       mounted = false;
     };
-  }, [envName, initialProjectName]);
+  }, [envName, projectName, exit]);
 
-  return { loading, error, projectName, environmentName, success };
+  return {
+    loading: loading || projectLoading,
+    error: error ?? projectError,
+    projectName,
+    environmentName,
+    success,
+  };
 }
 
 export function SelectEnvironmentUI({
@@ -109,14 +107,14 @@ export function SelectEnvironmentUI({
     return <ErrorMessage message={error.message} />;
   }
 
-  if (loading) {
+  if (loading || !projectName) {
     return <LoadingSpinner />;
   }
 
   return (
     <Box flexDirection="column" gap={1}>
       <Text>
-        <Text color="green">✓</Text> Environment{" "}
+        <Text color="green">✔</Text> Environment{" "}
         <Text color="green">{selectedEnv}</Text> is now active for project{" "}
         <Text color="cyan">{projectName}</Text>
       </Text>
