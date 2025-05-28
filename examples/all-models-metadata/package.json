@@ -7,9 +7,12 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "nodemon",
-    "start": "tsx ./src/index.tsx",
-    "build": "tsc"
+    "dev": "tsx ./src/index.ts",
+    "start": "npx gensx start ./src/workflows.ts",
+    "build": "tsc",
+    "deploy": "npx gensx deploy -e OPENAI_API_KEY ./src/workflows.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "description": "Use OpenRouter to list all models and their pricing",
   "main": "index.js",
@@ -17,14 +20,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@gensx/core": "workspace:*",
-    "@gensx/openai": "workspace:*",
-    "openai": "catalog:"
+    "@gensx/core": "alpha",
+    "@gensx/openai": "alpha"
   },
   "devDependencies": {
-    "@types/node": "catalog:examples",
-    "nodemon": "catalog:",
-    "tsx": "catalog:",
-    "typescript": "catalog:"
+    "@types/node": "^22",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   }
 }

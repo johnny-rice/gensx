@@ -5,6 +5,11 @@
     "outDir": "./dist",
     "baseUrl": "."
   },
-  "include": ["src/**/*", "vitest.config.ts", "tests/**/*", "rollup.config.js"],
+  "include": [
+    "src/**/*.ts",
+    "vitest.config.ts",
+    "tests/**/*",
+    "rollup.config.js"
+  ],
   "exclude": ["node_modules", "dist"]
 }

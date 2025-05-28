@@ -1,0 +1,27 @@
+{
+  "name": "@examples/groq-deepseek",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "description": "Use Groq DeepSeek R1 Distilled to write a blog post",
+  "scripts": {
+    "dev": "tsx ./src/index.ts",
+    "start": "npx gensx start ./src/workflows.ts",
+    "build": "tsc",
+    "deploy": "npx gensx deploy -e GROQ_API_KEY ./src/workflows.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@gensx/core": "alpha",
+    "@gensx/openai": "alpha"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

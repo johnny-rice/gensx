@@ -1,8 +1,17 @@
 {
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "lib": ["ESNext", "DOM"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "outDir": "./dist"
   },
-  "include": ["./*.ts", "./*.tsx", "./**/*.ts", "./**/*.tsx"],
+  "include": ["./src/**/*.ts"],
   "exclude": ["node_modules"]
 }

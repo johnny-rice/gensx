@@ -6,27 +6,22 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "description": "Example project leveraging OpenRouter for LLM inference.",
   "scripts": {
-    "dev": "nodemon",
-    "start": "tsx ./src/index.tsx",
+    "dev": "tsx ./src/index.ts",
+    "start": "npx gensx start ./src/workflows.ts",
     "build": "tsc",
+    "deploy": "npx gensx deploy -e OPENROUTER_API_KEY ./src/workflows.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
-  "description": "Example project leveraging OpenRouter for LLM inference.",
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@gensx/openai": "workspace:*",
-    "@gensx/core": "workspace:*",
-    "openai": "catalog:"
+    "@gensx/openai": "alpha",
+    "@gensx/core": "alpha"
   },
   "devDependencies": {
-    "@types/node": "catalog:examples",
-    "nodemon": "catalog:",
-    "tsx": "catalog:",
-    "typescript": "catalog:"
+    "@types/node": "^22",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   }
 }

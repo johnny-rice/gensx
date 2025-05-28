@@ -1,5 +1,5 @@
-import { resolveDeep } from "./resolve.js";
-import { ComponentProps, Context, GsxComponent } from "./types.js";
+import { ExecutionNode } from "./checkpoint.js";
+import { MaybePromise } from "./types.js";
 import {
   createWorkflowContext,
   WORKFLOW_CONTEXT_SYMBOL,
@@ -7,58 +7,6 @@ import {
 } from "./workflow-context.js";
 
 type WorkflowContext = Record<symbol, unknown>;
-
-// Create unique symbols for each context
-let contextCounter = 0;
-function createContextSymbol() {
-  return Symbol.for(`gensx.context.${contextCounter++}`);
-}
-
-export function createContext<T>(defaultValue: T): Context<T> {
-  const contextSymbol = createContextSymbol();
-  const Provider = (
-    props: ComponentProps<
-      { value: T; onComplete?: () => Promise<void> | void },
-      ExecutionContext
-    >,
-  ) => {
-    return wrapWithFramework(() => {
-      const currentContext = getCurrentContext();
-
-      const executionContext = currentContext.withContext(
-        {
-          [contextSymbol]: props.value,
-        },
-        props.onComplete,
-      );
-
-      return Promise.resolve(executionContext);
-    });
-  };
-
-  const context = {
-    __type: "Context" as const,
-    defaultValue,
-    symbol: contextSymbol,
-    Provider: Provider as unknown as GsxComponent<
-      { value: T; onComplete?: () => Promise<void> | void },
-      ExecutionContext
-    >,
-  };
-
-  return context;
-}
-
-export function useContext<T>(context: Context<T>): T {
-  const executionContext = getCurrentContext();
-  const value = executionContext.get(context.symbol) as T | undefined;
-
-  if (!value) {
-    return context.defaultValue;
-  }
-
-  return value;
-}
 
 // Define AsyncLocalStorage type based on Node.js definitions
 interface AsyncLocalStorageType<T> {
@@ -74,14 +22,18 @@ export class ExecutionContext {
   constructor(
     public context: WorkflowContext,
     private parent?: ExecutionContext,
-    public onComplete?: () => Promise<void> | void,
+    public onComplete?: () => MaybePromise<void>,
   ) {
     this.context[WORKFLOW_CONTEXT_SYMBOL] ??= createWorkflowContext();
   }
 
+  init() {
+    return contextManager.init();
+  }
+
   withContext(
     newContext: Partial<WorkflowContext>,
-    onComplete?: () => Promise<void> | void,
+    onComplete?: () => MaybePromise<void>,
   ): ExecutionContext {
     if (Object.getOwnPropertySymbols(newContext).length === 0) {
       return this;
@@ -114,11 +66,8 @@ export class ExecutionContext {
     return this.get(CURRENT_NODE_SYMBOL) as string | undefined;
   }
 
-  withCurrentNode<T>(nodeId: string, fn: () => Promise<T>): Promise<T> {
-    return withContext(
-      this.withContext({ [CURRENT_NODE_SYMBOL]: nodeId }),
-      wrapWithFramework(fn),
-    );
+  withCurrentNode<T>(nodeId: string, fn: () => T): T {
+    return withContext(this.withContext({ [CURRENT_NODE_SYMBOL]: nodeId }), fn);
   }
 }
 
@@ -146,7 +95,12 @@ const globalObj: Record<symbol, unknown> =
 globalObj[CONTEXT_STORAGE_SYMBOL] ??= null;
 
 // Try to import AsyncLocalStorage if available (Node.js environment)
-let AsyncLocalStorage: (new <T>() => AsyncLocalStorageType<T>) | undefined;
+let AsyncLocalStorage:
+  | {
+      new <T>(): AsyncLocalStorageType<T>;
+      snapshot: () => (fn: (...args: unknown[]) => unknown) => unknown;
+    }
+  | undefined;
 
 const configureAsyncLocalStorage = (async () => {
   try {
@@ -177,19 +131,12 @@ const setGlobalContext = (context: ExecutionContext): void => {
   globalObj[GLOBAL_CONTEXT_SYMBOL] = context;
 };
 
-// Add type for framework functions
-type FrameworkFunction<T> = (() => Promise<T>) & {
-  __gsxFramework: boolean;
-};
-
-function wrapWithFramework<T>(fn: () => Promise<T>): FrameworkFunction<T> {
-  const wrapper = async () => fn();
-  (wrapper as FrameworkFunction<T>).__gsxFramework = true;
-  return wrapper as FrameworkFunction<T>;
-}
-
 // Update contextManager implementation
 const contextManager = {
+  async init() {
+    await configureAsyncLocalStorage;
+  },
+
   getCurrentContext(): ExecutionContext {
     const storage = globalObj[
       CONTEXT_STORAGE_SYMBOL
@@ -201,37 +148,82 @@ const contextManager = {
     return getGlobalContext();
   },
 
-  run<T>(context: ExecutionContext, fn: () => Promise<T>): Promise<T> {
-    const wrappedFn = wrapWithFramework(fn);
+  run<T>(context: ExecutionContext, fn: () => T): T {
     const storage = globalObj[
       CONTEXT_STORAGE_SYMBOL
     ] as AsyncLocalStorageType<ExecutionContext> | null;
     if (storage) {
-      return storage.run(context, wrappedFn);
+      return storage.run(context, fn);
     }
     const prevContext = getGlobalContext();
     setGlobalContext(context);
     try {
-      return wrappedFn();
+      return fn();
     } finally {
       setGlobalContext(prevContext);
     }
   },
+
+  getContextSnapshot(): RunInContext {
+    const storage = globalObj[
+      CONTEXT_STORAGE_SYMBOL
+    ] as AsyncLocalStorageType<ExecutionContext> | null;
+    if (storage) {
+      return AsyncLocalStorage?.snapshot() as RunInContext;
+    }
+    const context = getGlobalContext();
+    return ((fn: () => unknown) => {
+      return contextManager.run(context, fn);
+    }) as RunInContext;
+  },
 };
 
+export type RunInContext = <T>(fn: () => T) => T;
+
 // Update withContext to use contextManager.run
-export async function withContext<T>(
-  context: ExecutionContext,
-  fn: () => Promise<T>,
-): Promise<T> {
-  await configureAsyncLocalStorage;
-  return contextManager.run(context, async () => {
-    const result = await resolveDeep(wrapWithFramework(fn));
-    return result as T;
-  });
+export function withContext<T>(context: ExecutionContext, fn: () => T): T {
+  return contextManager.run(context, fn);
 }
 
 // Export for testing or advanced use cases
 export function getCurrentContext(): ExecutionContext {
   return contextManager.getCurrentContext();
+}
+
+export function getContextSnapshot(): RunInContext {
+  return contextManager.getContextSnapshot();
+}
+
+export function getCurrentNodeCheckpointManager() {
+  const context = getCurrentContext();
+  const workflowContext = context.getWorkflowContext();
+  const { checkpointManager } = workflowContext;
+  const currentNodeId = context.getCurrentNodeId();
+
+  if (!currentNodeId) {
+    console.warn("No current node found");
+    return {
+      completeNode: () => {
+        // noop
+      },
+      updateNode: () => {
+        // noop
+      },
+      addMetadata: () => {
+        // noop
+      },
+    };
+  }
+
+  return {
+    completeNode: (output: unknown) => {
+      checkpointManager.completeNode(currentNodeId, output);
+    },
+    updateNode: (updates: Partial<ExecutionNode>) => {
+      checkpointManager.updateNode(currentNodeId, updates);
+    },
+    addMetadata: (metadata: Record<string, unknown>) => {
+      checkpointManager.addMetadata(currentNodeId, metadata);
+    },
+  };
 }

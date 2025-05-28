@@ -7,22 +7,21 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "nodemon",
-    "start": "tsx ./index.tsx",
+    "dev": "tsx ./src/index.ts",
+    "start": "npx gensx start ./src/workflows.ts",
     "build": "tsc",
+    "deploy": "npx gensx deploy -e OPENAI_API_KEY ./src/workflows.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@gensx/anthropic": "workspace:*",
-    "@gensx/core": "workspace:*",
-    "@anthropic-ai/sdk": "^0.39.0",
-    "zod": "catalog:"
+    "@gensx/core": "alpha",
+    "@gensx/anthropic": "alpha",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/node": "catalog:examples",
-    "nodemon": "catalog:",
-    "tsx": "catalog:",
-    "typescript": "catalog:"
+    "@types/node": "^22",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   }
 }

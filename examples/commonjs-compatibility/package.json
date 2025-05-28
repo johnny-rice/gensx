@@ -19,7 +19,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@gensx/core": "workspace:*",
+    "@gensx/core": "0.3.13",
     "zod": "catalog:"
   },
   "devDependencies": {

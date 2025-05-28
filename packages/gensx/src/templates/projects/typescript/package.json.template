@@ -7,9 +7,9 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "tsx ./src/index.tsx",
-    "start": "npx gensx start ./src/workflows.tsx",
+    "dev": "tsx ./src/index.ts",
+    "start": "npx gensx start ./src/workflows.ts",
     "build": "tsc",
-    "deploy": "npx gensx deploy -e OPENAI_API_KEY ./src/workflows.tsx"
+    "deploy": "npx gensx deploy -e OPENAI_API_KEY ./src/workflows.ts"
   }
 }
