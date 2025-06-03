@@ -14,6 +14,7 @@ import { FirstTimeSetup } from "../components/FirstTimeSetup.js";
 import { LoadingSpinner } from "../components/LoadingSpinner.js";
 import { useProjectName } from "../hooks/useProjectName.js";
 import { getAuth } from "../utils/config.js";
+import { validateAndSelectEnvironment } from "../utils/env-config.js";
 import { generateSchema } from "../utils/schema.js";
 import { USER_AGENT } from "../utils/user-agent.js";
 import { build } from "./build.js";
@@ -129,6 +130,7 @@ export const DeployUI: React.FC<Props> = ({ file, options }) => {
         }
 
         const deploymentData = response.data as DeploymentResponse;
+        await validateAndSelectEnvironment(projectName!, environment);
         setDeployment(deploymentData);
         setPhase("done");
 
@@ -205,8 +207,11 @@ export const DeployUI: React.FC<Props> = ({ file, options }) => {
               <Spinner type="dots" />{" "}
               <Text dimColor>
                 Deploying project <Text color="cyan">{projectName}</Text> to
-                GenSX Cloud (Environment:{" "}
-                <Text color="cyan">{resolvedEnv}</Text>)
+                GenSX Cloud <Text dimColor>(Environment:</Text>{" "}
+                <Text color="cyan" dimColor>
+                  {resolvedEnv}
+                </Text>
+                <Text dimColor>)</Text>
               </Text>
             </Text>
           </Box>
@@ -232,6 +237,16 @@ export const DeployUI: React.FC<Props> = ({ file, options }) => {
               ✔
             </Text>
             <Text> Deployed to GenSX Cloud</Text>
+          </Box>
+          <Box>
+            <Text color="green" bold>
+              ✔
+            </Text>
+            <Text>
+              {" "}
+              Environment <Text color="cyan">{resolvedEnv}</Text> is now
+              selected
+            </Text>
           </Box>
           <Box flexDirection="column" marginTop={1}>
             <Text color="white">Available Workflows:</Text>
