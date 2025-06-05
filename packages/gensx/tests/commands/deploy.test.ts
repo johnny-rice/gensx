@@ -360,12 +360,12 @@ hasCompletedFirstTimeSetup = false
     );
 
     // Wait for the build phase to start
-    await waitForText(lastFrame, /Building workflow using docker\.\.\./);
+    await waitForText(lastFrame, /Building workflows using docker\.\.\./);
 
     // Check for spinner indicator
     const frame = lastFrame();
     expect(frame).toBeTruthy();
-    expect(frame?.includes("Building workflow using docker...")).toBe(true);
+    expect(frame?.includes("Building workflows using docker...")).toBe(true);
   });
 
   it("should show error when build fails", async () => {
