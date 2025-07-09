@@ -35,10 +35,10 @@ catalogs:
       version: 4.43.0
     tsx:
       specifier: ^4.19.2
-      version: 4.19.4
+      version: 4.20.3
     typescript:
       specifier: ^5.7.2
-      version: 5.8.2
+      version: 5.8.3
     vite:
       specifier: ^6.3.5
       version: 6.3.5
@@ -54,7 +54,7 @@ catalogs:
   examples:
     '@types/node':
       specifier: ^20
-      version: 20.17.30
+      version: 20.19.0
   packages:
 
     '@types/node':
@@ -347,16 +347,16 @@ importers:
     devDependencies:
       '@types/node':
         specifier: catalog:examples
-        version: 20.17.30
+        version: 20.19.0
       nodemon:
         specifier: 'catalog:'
         version: 3.1.10
       tsx:
         specifier: 'catalog:'
-        version: 4.19.4
+        version: 4.20.3
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
 
   examples/deep-research:
     dependencies:
@@ -649,16 +649,16 @@ importers:
     devDependencies:
       '@types/node':
         specifier: catalog:examples
-        version: 20.17.30
+        version: 20.19.0
       nodemon:
         specifier: 'catalog:'
         version: 3.1.10
       tsx:
         specifier: 'catalog:'
-        version: 4.19.4
+        version: 4.20.3
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
 
   examples/open-router:
     dependencies:
@@ -699,16 +699,16 @@ importers:
     devDependencies:
       '@types/node':
         specifier: catalog:examples
-        version: 20.17.30
+        version: 20.19.0
       nodemon:
         specifier: 'catalog:'
         version: 3.1.10
       tsx:
         specifier: 'catalog:'
-        version: 4.19.4
+        version: 4.20.3
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
 
   examples/openai-examples:
     dependencies:
@@ -817,16 +817,16 @@ importers:
     devDependencies:
       '@types/node':
         specifier: catalog:examples
-        version: 20.17.30
+        version: 20.19.0
       nodemon:
         specifier: 'catalog:'
         version: 3.1.10
       tsx:
         specifier: 'catalog:'
-        version: 4.19.4
+        version: 4.20.3
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
 
   examples/self-modifying-code:
     dependencies:
@@ -851,16 +851,16 @@ importers:
     devDependencies:
       '@types/node':
         specifier: catalog:examples
-        version: 20.17.30
+        version: 20.19.0
       nodemon:
         specifier: 'catalog:'
         version: 3.1.10
       tsx:
         specifier: 'catalog:'
-        version: 4.19.4
+        version: 4.20.3
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
 
   examples/text-to-sql:
     dependencies:
@@ -907,13 +907,13 @@ importers:
     devDependencies:
       '@types/node':
         specifier: catalog:examples
-        version: 20.17.30
+        version: 20.19.0
       nodemon:
         specifier: 'catalog:'
         version: 3.1.10
       tsx:
         specifier: 'catalog:'
-        version: 4.19.4
+        version: 4.20.3
       typescript:
         specifier: '5.8'
         version: 5.8.3
@@ -975,19 +975,19 @@ importers:
         version: 19.1.3
       '@vitest/coverage-istanbul':
         specifier: 'catalog:'
-        version: 3.2.3(vitest@3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0))
+        version: 3.2.3(vitest@3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
       fs-extra:
         specifier: ^11.3.0
         version: 11.3.0
       tsx:
         specifier: 'catalog:'
-        version: 4.19.4
+        version: 4.20.3
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
       vitest:
         specifier: 'catalog:'
-        version: 3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)
+        version: 3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
 
   packages/gensx:
     dependencies:
@@ -1136,7 +1136,7 @@ importers:
         version: 18.19.86
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
       vite:
         specifier: 'catalog:'
         version: 6.3.5(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
@@ -1170,7 +1170,7 @@ importers:
         version: 18.19.86
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
       vite:
         specifier: 'catalog:'
         version: 6.3.5(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
@@ -1188,7 +1188,7 @@ importers:
         version: 1.12.1
       tsx:
         specifier: 'catalog:'
-        version: 4.19.4
+        version: 4.20.3
       zod:
         specifier: 'catalog:'
         version: 3.25.56
@@ -1198,16 +1198,19 @@ importers:
         version: 18.19.86
       '@vitest/coverage-istanbul':
         specifier: 'catalog:'
-        version: 3.2.3(vitest@3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0))
+        version: 3.2.3(vitest@3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
       vitest:
         specifier: 'catalog:'
-        version: 3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)
+        version: 3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
 
   packages/gensx-core:
     dependencies:
       '@common.js/serialize-error':
         specifier: ^11.0.3
         version: 11.0.3
+      fast-json-patch:
+        specifier: ^3.1.1
+        version: 3.1.1
       ini:
         specifier: ^5.0.0
         version: 5.0.0
@@ -1235,7 +1238,7 @@ importers:
         version: 18.19.86
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
       vite:
         specifier: 'catalog:'
         version: 6.3.5(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
@@ -1344,7 +1347,7 @@ importers:
         version: 18.19.86
       typescript:
         specifier: 'catalog:'
-        version: 5.8.2
+        version: 5.8.3
       vite:
         specifier: 'catalog:'
         version: 6.3.5(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
@@ -5646,6 +5649,9 @@ packages:
     resolution: {integrity: sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==}
     engines: {node: '>=8.6.0'}
 
+  fast-json-patch@3.1.1:
+    resolution: {integrity: sha512-vf6IHUX2SBcA+5/+4883dsIjpBTqmfBjmYiWK1savxQmFk4JfBMLa7ynTYOs1Rolp/T1betJxHiGD3g1Mn8lUQ==}
+
   fast-json-stable-stringify@2.1.0:
     resolution: {integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==}
 
@@ -8807,18 +8813,6 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
-  ws@8.18.0:
-    resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
   ws@8.18.2:
     resolution: {integrity: sha512-DMricUmwGZUVr++AEAe2uiVM7UoO9MAVZMDu05UQOaUII0lp+zOzLLU4Xqh/JvTqklB1T4uELaaPBKyjE1r4fQ==}
     engines: {node: '>=10.0.0'}
@@ -11658,22 +11652,6 @@ snapshots:
       svelte: 4.2.19
       vue: 3.5.13(typescript@5.7.2)
 
-  '@vitest/coverage-istanbul@3.2.3(vitest@3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0))':
-    dependencies:
-      '@istanbuljs/schema': 0.1.3
-      debug: 4.4.1(supports-color@5.5.0)
-      istanbul-lib-coverage: 3.2.2
-      istanbul-lib-instrument: 6.0.3
-      istanbul-lib-report: 3.0.1
-      istanbul-lib-source-maps: 5.0.6
-      istanbul-reports: 3.1.7
-      magicast: 0.3.5
-      test-exclude: 7.0.1
-      tinyrainbow: 2.0.0
-      vitest: 3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)
-    transitivePeerDependencies:
-      - supports-color
-
   '@vitest/coverage-istanbul@3.2.3(vitest@3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:
       '@istanbuljs/schema': 0.1.3
@@ -13659,6 +13637,8 @@ snapshots:
       merge2: 1.4.1
       micromatch: 4.0.8
 
+  fast-json-patch@3.1.1: {}
+
   fast-json-stable-stringify@2.1.0: {}
 
   fast-levenshtein@2.0.6: {}
@@ -14266,7 +14246,7 @@ snapshots:
       type-fest: 4.35.0
       widest-line: 5.0.0
       wrap-ansi: 9.0.0
-      ws: 8.18.0
+      ws: 8.18.2
       yoga-layout: 3.2.1
     optionalDependencies:
       '@types/react': 19.1.3
@@ -17483,27 +17463,6 @@ snapshots:
       - supports-color
       - terser
 
-  vite-node@3.2.3(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0):
-    dependencies:
-      cac: 6.7.14
-      debug: 4.4.1(supports-color@5.5.0)
-      es-module-lexer: 1.7.0
-      pathe: 2.0.3
-      vite: 6.3.5(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)
-    transitivePeerDependencies:
-      - '@types/node'
-      - jiti
-      - less
-      - lightningcss
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - yaml
-
   vite-node@3.2.3(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0):
     dependencies:
       cac: 6.7.14
@@ -17557,29 +17516,12 @@ snapshots:
       lightningcss: 1.30.1
       terser: 5.43.1
 
-  vite@6.3.5(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0):
-    dependencies:
-      esbuild: 0.25.5
-      fdir: 6.4.5(picomatch@4.0.2)
-      picomatch: 4.0.2
-      postcss: 8.5.4
-      rollup: 4.43.0
-      tinyglobby: 0.2.14
-    optionalDependencies:
-      '@types/node': 18.19.86
-      fsevents: 2.3.3
-      jiti: 2.4.2
-      lightningcss: 1.30.1
-      terser: 5.43.1
-      tsx: 4.19.4
-      yaml: 2.8.0
-
   vite@6.3.5(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0):
     dependencies:
       esbuild: 0.25.5
       fdir: 6.4.5(picomatch@4.0.2)
       picomatch: 4.0.2
-      postcss: 8.5.4
+      postcss: 8.5.5
       rollup: 4.43.0
       tinyglobby: 0.2.14
     optionalDependencies:
@@ -17596,7 +17538,7 @@ snapshots:
       esbuild: 0.25.5
       fdir: 6.4.5(picomatch@4.0.2)
       picomatch: 4.0.2
-      postcss: 8.5.4
+      postcss: 8.5.5
       rollup: 4.43.0
       tinyglobby: 0.2.14
     optionalDependencies:
@@ -17642,48 +17584,6 @@ snapshots:
       - sugarss
       - supports-color
       - terser
-
-  vitest@3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0):
-    dependencies:
-      '@types/chai': 5.2.2
-      '@vitest/expect': 3.2.3
-      '@vitest/mocker': 3.2.3(vite@6.3.5(@types/node@22.15.23)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
-      '@vitest/pretty-format': 3.2.3
-      '@vitest/runner': 3.2.3
-      '@vitest/snapshot': 3.2.3
-      '@vitest/spy': 3.2.3
-      '@vitest/utils': 3.2.3
-      chai: 5.2.0
-      debug: 4.4.1(supports-color@5.5.0)
-      expect-type: 1.2.1
-      magic-string: 0.30.17
-      pathe: 2.0.3
-      picomatch: 4.0.2
-      std-env: 3.9.0
-      tinybench: 2.9.0
-      tinyexec: 0.3.2
-      tinyglobby: 0.2.14
-      tinypool: 1.1.0
-      tinyrainbow: 2.0.0
-      vite: 6.3.5(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)
-      vite-node: 3.2.3(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/debug': 4.1.12
-      '@types/node': 18.19.86
-    transitivePeerDependencies:
-      - jiti
-      - less
-      - lightningcss
-      - msw
-      - sass
-      - sass-embedded
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - tsx
-      - yaml
 
   vitest@3.2.3(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0):
     dependencies:
@@ -17941,8 +17841,6 @@ snapshots:
       strip-ansi: 7.1.0
 
   wrappy@1.0.2: {}
-
-  ws@8.18.0: {}
 
   ws@8.18.2: {}
 
