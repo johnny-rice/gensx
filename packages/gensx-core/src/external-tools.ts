@@ -73,9 +73,6 @@ export async function executeExternalTool<
         throw new Error("No current node ID found");
       }
 
-      // Ensure that the we have flushed all pending updates to the server.
-      await workflowContext.checkpointManager.waitForPendingUpdates();
-
       // Send external tool call message
       workflowContext.sendWorkflowMessage({
         type: "external-tool",
@@ -86,8 +83,6 @@ export async function executeExternalTool<
         nodeId: currentNode.id,
       });
 
-      // For now we rely on the request input mechanism to resume the workflow later.
-      // The next iteration of this will use the non-blocking queue.
       const result = await workflowContext.onRequestInput({
         type: "external-tool",
         toolName: String(toolName),
