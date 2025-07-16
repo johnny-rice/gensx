@@ -167,7 +167,7 @@ Based on the research provided and the guidelines above, create a detailed, comp
     gensx.publishData(
       `Outline complete with ${result.object.sections.length} sections`,
     );
-    return result;
+    return result.object;
   },
 );
 
