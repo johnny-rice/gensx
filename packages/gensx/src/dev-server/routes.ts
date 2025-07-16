@@ -312,8 +312,8 @@ export function setupRoutes(
     });
   });
 
-  // Resume workflow execution with input
-  app.post(`/workflowExecutions/:executionId/resume/:nodeId`, async (c) => {
+  // Fulfill input request for a node
+  app.post(`/workflowExecutions/:executionId/fulfill/:nodeId`, async (c) => {
     const executionId = c.req.param("executionId");
     const nodeId = c.req.param("nodeId");
     const execution = workflowManager.getExecution(executionId);
