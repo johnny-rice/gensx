@@ -7,28 +7,24 @@ import * as z3 from "zod/v3";
 import * as z4 from "zod/v4/core";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
-export type AnyZodSchema<S = unknown> = z3.ZodType<S> | z4.$ZodType<S>;
-export type InferZodType<
-  T extends z3.ZodType<S> | z4.$ZodType<S>,
-  S = unknown,
-> = T extends z3.ZodType<S> ? z3.infer<T> : z4.infer<T>;
-
-export function zodValidate<T extends AnyZodSchema>(
+export type ZodTypeAny = z3.ZodTypeAny | z4.$ZodType;
+export function zodValidate<T extends ZodTypeAny>(
   schema: T,
   value: unknown,
-): T extends z3.ZodType ? z3.infer<T> : z4.output<T> {
+): InferZodType<T> {
   if ("_zod" in schema) {
-    return z4.parse(schema, value) as T extends z3.ZodType
-      ? z3.infer<T>
-      : z4.output<T>;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return z4.parse(schema, value) as InferZodType<T>;
   }
-
-  return schema.parse(value) as T extends z3.ZodType
-    ? z3.infer<T>
-    : z4.output<T>;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return schema.parse(value) as InferZodType<T>;
 }
 
-export function toJsonSchema(schema: AnyZodSchema) {
+export type InferZodType<T extends ZodTypeAny> = T extends z3.ZodTypeAny
+  ? z3.infer<T>
+  : z4.infer<T>;
+
+export function toJsonSchema(schema: ZodTypeAny) {
   if ("_zod" in schema) {
     return z4.toJSONSchema(schema);
   }
@@ -36,12 +32,9 @@ export function toJsonSchema(schema: AnyZodSchema) {
   return zodToJsonSchema(schema as any);
 }
 
-export function isZodSchemaObject(schema: unknown): schema is AnyZodSchema {
+export function isZodSchemaObject(schema: unknown): schema is ZodTypeAny {
   const isZ4 =
-    schema !== undefined &&
-    schema !== null &&
-    (typeof schema === "object" || typeof schema === "function") &&
-    "_zod" in schema;
+    typeof schema === "object" && schema !== null && "_zod" in schema;
   const isZ3 = schema instanceof z3.Schema;
-  return isZ4 || isZ3;
+  return isZ3 || isZ4;
 }

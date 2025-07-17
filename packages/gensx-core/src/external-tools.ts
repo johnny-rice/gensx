@@ -1,16 +1,11 @@
 import { Component } from "./component.js";
 import { getCurrentContext } from "./context.js";
 import { JsonValue } from "./workflow-state.js";
-import {
-  AnyZodSchema,
-  InferZodType,
-  toJsonSchema,
-  zodValidate,
-} from "./zod.js";
+import { InferZodType, toJsonSchema, ZodTypeAny, zodValidate } from "./zod.js";
 
 export interface ToolDefinition<
-  TParamsSchema extends AnyZodSchema = AnyZodSchema,
-  TResultSchema extends AnyZodSchema = AnyZodSchema,
+  TParamsSchema extends ZodTypeAny,
+  TResultSchema extends ZodTypeAny,
 > {
   description?: string;
   params: TParamsSchema;
@@ -18,17 +13,16 @@ export interface ToolDefinition<
 }
 
 // Tool box type
-export type ToolBox = Record<string, ToolDefinition>;
+export type ToolBox = Record<string, ToolDefinition<ZodTypeAny, ZodTypeAny>>;
 
 // Extract param/result types automatically
-export type InferToolParams<
-  T extends ToolBox,
-  Tool extends keyof T,
-> = InferZodType<T[Tool]["params"]>;
-export type InferToolResult<
-  T extends ToolBox,
-  Tool extends keyof T,
-> = InferZodType<T[Tool]["result"]>;
+export type InferToolParams<T extends ToolBox, K extends keyof T> =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  T[K] extends ToolDefinition<infer P, any> ? InferZodType<P> : never;
+
+export type InferToolResult<T extends ToolBox, K extends keyof T> =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  T[K] extends ToolDefinition<any, infer R> ? InferZodType<R> : never;
 
 // Tool implementations for frontend
 export type ToolImplementations<T extends ToolBox> = {
@@ -44,15 +38,12 @@ export function createToolBox<T extends ToolBox>(definitions: T): T {
   return definitions;
 }
 
-export async function executeExternalTool<
-  T extends Record<string, ToolDefinition>,
-  K extends keyof T,
->(
+export async function executeExternalTool<T extends ToolBox, K extends keyof T>(
   toolBox: T,
   toolName: K,
   params: InferToolParams<T, K>,
 ): Promise<InferToolResult<T, K>> {
-  const toolDef = toolBox[toolName] as ToolDefinition;
+  const toolDef = toolBox[toolName] as ToolDefinition<ZodTypeAny, ZodTypeAny>;
   const validatedParams = zodValidate(toolDef.params, params);
   const paramsJsonSchema = toJsonSchema(toolDef.params);
   const resultJsonSchema = toJsonSchema(toolDef.result);
