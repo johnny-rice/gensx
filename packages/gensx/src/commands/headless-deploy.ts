@@ -7,10 +7,12 @@ import axios from "axios";
 import FormData from "form-data";
 import { Definition } from "typescript-json-schema";
 
-import { checkEnvironmentExists } from "../models/environment.js";
+import {
+  checkEnvironmentExists,
+  createEnvironment,
+} from "../models/environment.js";
 import { checkProjectExists } from "../models/projects.js";
 import { getAuth } from "../utils/config.js";
-import { validateAndSelectEnvironment } from "../utils/env-config.js";
 import { readProjectConfig } from "../utils/project-config.js";
 import { generateSchema } from "../utils/schema.js";
 import { USER_AGENT } from "../utils/user-agent.js";
@@ -23,57 +25,78 @@ export async function headlessDeploy(
     tsconfig?: string;
   },
 ) {
+  let org = process.env.GENSX_ORG;
+  let token = process.env.GENSX_API_KEY;
+  let apiBaseUrl = process.env.GENSX_API_BASE_URL;
+  let consoleBaseUrl = process.env.GENSX_CONSOLE_BASE_URL;
+
+  if (!org || !token) {
+    const authConfig = await getAuth();
+    if (!authConfig) {
+      throw new Error(
+        "Not authenticated. Please specify GENSX_ORG and GENSX_API_KEY.",
+      );
+    }
+    org ??= authConfig.org;
+    token ??= authConfig.token;
+    apiBaseUrl ??= authConfig.apiBaseUrl;
+    consoleBaseUrl ??= authConfig.consoleBaseUrl;
+  }
+
   // 1. Resolve project name
   let projectName = options.project;
-  if (!projectName) {
+  let environmentName = options.env;
+  if (!projectName || !environmentName) {
     const projectConfig = await readProjectConfig(process.cwd());
-    if (!projectConfig?.projectName) {
+    if (!projectName && !projectConfig?.projectName) {
       throw new Error(
         "No project name found. Either specify --project or create a gensx.yaml file with a 'projectName' field.",
       );
     }
-    projectName = projectConfig.projectName;
+    if (!environmentName && !projectConfig?.environmentName) {
+      throw new Error(
+        "No environment specified. Either specify --env or create a gensx.yaml file with an 'environmentName' field.",
+      );
+    }
+    projectName ??= projectConfig?.projectName;
+    environmentName ??= projectConfig?.environmentName;
   }
 
+  // At this point, both projectName and environmentName are guaranteed to be defined
+  // TypeScript: assert as string
+  projectName = projectName!;
+  environmentName = environmentName!;
+
   // 2. Validate project exists
-  const projectExists = await checkProjectExists(projectName);
+  const projectExists = await checkProjectExists(projectName, {
+    token,
+    org,
+    apiBaseUrl,
+  });
   if (!projectExists) {
     throw new Error(`Project ${projectName} does not exist.`);
   }
 
-  // 3. Resolve environment
-  let environment = options.env;
-  if (!environment) {
-    const projectConfig = await readProjectConfig(process.cwd());
-    if (!projectConfig?.environmentName) {
-      throw new Error(
-        "No environment specified. Use --env or add 'environmentName' to gensx.yaml.",
-      );
-    }
-    environment = projectConfig.environmentName;
+  // 3. Validate environment exists
+  const envExists = await checkEnvironmentExists(projectName, environmentName, {
+    token,
+    org,
+    apiBaseUrl,
+  });
+  if (!envExists) {
+    await createEnvironment(projectName, environmentName, {
+      token,
+      org,
+      apiBaseUrl,
+    });
   }
 
+  // Only print the deployment message once, right before the API call
   console.info(
-    `Deploying project '${projectName}' to environment '${environment}'...`,
+    `Deploying project '${projectName}' to environment '${environmentName}'...`,
   );
 
-  // 4. Validate environment exists
-  const envExists = await checkEnvironmentExists(projectName, environment);
-  if (!envExists) {
-    throw new Error(
-      `Environment ${environment} does not exist for project ${projectName}.`,
-    );
-  }
-
-  // 5. Validate and select environment (before deployment)
-  const validEnv = await validateAndSelectEnvironment(projectName, environment);
-  if (!validEnv) {
-    throw new Error(
-      `Failed to validate or select environment '${environment}' for project '${projectName}'.`,
-    );
-  }
-
-  // 6. Build or use archive
+  // 4. Build or use archive
   let schemas: Record<string, { input: Definition; output: Definition }>;
   let bundleFile: string;
   if (options.archive) {
@@ -107,13 +130,7 @@ export async function headlessDeploy(
     schemas = buildResult.schemas;
   }
 
-  // 7. Get auth config
-  const authConfig = await getAuth();
-  if (!authConfig) {
-    throw new Error("Not authenticated. Please run 'gensx login' first.");
-  }
-
-  // 8. Create form data with bundle
+  // 5. Create form data with bundle
   const form = new FormData();
   form.append(
     "file",
@@ -125,18 +142,15 @@ export async function headlessDeploy(
   }
   form.append("schemas", JSON.stringify(schemas));
 
-  // 9. Deploy
+  // 6. Deploy
   const url = new URL(
-    `/org/${authConfig.org}/projects/${encodeURIComponent(projectName)}/environments/${encodeURIComponent(environment)}/deploy`,
-    authConfig.apiBaseUrl,
+    `/org/${org}/projects/${encodeURIComponent(projectName)}/environments/${encodeURIComponent(environmentName)}/deploy`,
+    apiBaseUrl ?? "https://api.gensx.com",
   );
 
-  console.info(
-    `Deploying project '${projectName}' to environment '${environment}'...`,
-  );
   const response = await axios.post(url.toString(), form, {
     headers: {
-      Authorization: `Bearer ${authConfig.token}`,
+      Authorization: `Bearer ${token}`,
       "User-Agent": USER_AGENT,
     },
   });
@@ -163,6 +177,6 @@ export async function headlessDeploy(
     console.info(`- ${workflow.name}`);
   }
   console.info(
-    `Dashboard: ${authConfig.consoleBaseUrl}/${authConfig.org}/${deploymentData.projectName}?env=${deploymentData.environmentId}`,
+    `Dashboard: ${consoleBaseUrl ?? "https://app.gensx.com"}/${org}/${deploymentData.projectName}?env=${deploymentData.environmentId}`,
   );
 }
