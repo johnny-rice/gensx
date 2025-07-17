@@ -1,0 +1,119 @@
+name: "Deploy GenSX Workflow"
+
+description: "Deploy a GenSX workflow to a specified environment"
+
+inputs:
+  org:
+    description: "GenSX organization"
+    required: true
+  workflow_file:
+    description: "Path to the GenSX workflow file"
+    required: true
+  project_name:
+    description: "GenSX project name"
+    required: false
+  environment_name:
+    description: "Deployment environment"
+    required: true
+  api_key:
+    description: "GenSX API key"
+    required: true
+  env:
+    description: "Environment variables as multiline string (e.g., 'VAR1=value1\nVAR2=value2' or 'VAR1\nVAR2=value2')"
+    required: false
+    type: string
+  working_directory:
+    description: "Working directory for the deployment"
+    required: false
+    default: '.'
+  gensx_cli_version:
+    description: "GenSX CLI version"
+    required: false
+    default: 'latest'
+
+outputs:
+  deployment_status:
+    description: "Status of the deployment"
+    value: ${{ steps.deploy.outputs.status }}
+  deployment_url:
+    description: "URL of the deployed workflow (if applicable)"
+    value: ${{ steps.deploy.outputs.url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Verify Docker is available
+      shell: bash
+      run: |
+        if ! command -v docker &> /dev/null; then
+          echo "❌ Error: Docker is not installed or not in PATH"
+          exit 1
+        fi
+
+        if ! docker info &> /dev/null; then
+          echo "❌ Error: Docker daemon is not running"
+          exit 1
+        fi
+
+    - name: Deploy GenSX workflow
+      id: deploy
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      env:
+        GENSX_API_KEY: ${{ inputs.api_key }}
+        GENSX_ORG: ${{ inputs.org }}
+      run: |
+        set +xe
+
+        # Build the deployment command
+        env_flags=""
+        if [ -n "${{ inputs.env }}" ]; then
+          while IFS= read -r var; do
+            if [ -n "$var" ]; then
+              env_flags="$env_flags -e $var"
+            fi
+          done <<< "${{ inputs.env }}"
+        fi
+
+        deploy_cmd="npx gensx@${{ inputs.gensx_cli_version }} deploy ${{ inputs.workflow_file }}"
+
+        # Add project if specified
+        if [ -n "${{ inputs.project_name }}" ]; then
+          deploy_cmd="$deploy_cmd --project ${{ inputs.project_name }}"
+        fi
+
+        # Add environment if specified
+        if [ -n "${{ inputs.environment_name }}" ]; then
+          deploy_cmd="$deploy_cmd --env ${{ inputs.environment_name }}"
+        fi
+
+        # Add environment variables
+        deploy_cmd="$deploy_cmd $env_flags"
+
+        # Add auto-yes flag
+        deploy_cmd="$deploy_cmd --yes"
+
+        echo "Running: $deploy_cmd"
+
+        # Create a temp file for capturing output
+        deploy_output_file=$(mktemp)
+
+        # Run deployment, show output live, and capture it
+        set -o pipefail
+        eval $deploy_cmd 2>&1 | tee "$deploy_output_file"
+        deploy_exit_code=${PIPESTATUS[0]}
+
+        # Read output from file
+        deploy_output=$(cat "$deploy_output_file")
+
+        if [ $deploy_exit_code -ne 0 ]; then
+          echo "❌ Deployment failed"
+          exit $deploy_exit_code
+        fi
+
+        # Extract URL from output (look for lines containing app.gensx.com)
+        deployment_url=$(grep -Eo "https://app\\.gensx\\.com[^[:space:]]*" "$deploy_output_file" | head -1 | tr -d '[:space:]')
+
+        # Set outputs
+        echo "status=success" >> $GITHUB_OUTPUT
+        echo "url=$deployment_url" >> $GITHUB_OUTPUT
