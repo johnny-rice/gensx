@@ -1,0 +1,14 @@
+{
+  "name": "gensx-next-template",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:next\" \"npm run dev:gensx\"",
+    "dev:next": "next dev",
+    "dev:gensx": "gensx start ./gensx/workflows.ts",
+    "deploy": "gensx deploy -e OPENAI_API_KEY ./gensx/workflows.ts",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+}
