@@ -51,14 +51,22 @@
   "devDependencies": {
     "@types/node": "catalog:packages",
     "@vitest/coverage-istanbul": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@libsql/client": "^0.15.9"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@gensx/core": "workspace:*",
-    "@turbopuffer/turbopuffer": "^0.10.4",
+    "@turbopuffer/turbopuffer": "^0.10.4"
+  },
+  "peerDependencies": {
     "@libsql/client": "^0.15.9"
+  },
+  "peerDependenciesMeta": {
+    "@libsql/client": {
+      "optional": true
+    }
   }
 }
