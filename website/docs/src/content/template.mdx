@@ -1,0 +1,494 @@
+---
+title: Use a template
+description: Clone and deploy one of the GenSX template apps to get up and running quickly.
+---
+
+# Use a template
+
+GenSX provides several templates to help you get up and running quickly. This guide will walk you through cloning and deploying one of the GenSX app templates of your choice.
+
+If you're looking for a more detailed guide on how to build GenSX Workflows, check out the [quickstart](/docs/quickstart) guide.
+
+## Select a template
+
+To get started, select one of the templates below:
+
+<Tabs
+  defaultTab="chat-ux"
+  tabs={[
+    {
+      id: `chat-ux`,
+      name: `Chat UX`,
+      description: `Chat app with streaming, thinking, tool calling, and thread history built in.`
+    },
+    {
+      id: `deep-research`,
+      name: `Deep Research`,
+      description: `A deep research tool that writes detailed reports on any topic.`
+    },
+    {
+      id: `draft-pad`,
+      name: `Draft Pad`,
+      description: `A real-time collaborative draft writer and editor with versioning and diffing.`
+    },
+    {
+      id: `client-side-tools`,
+      name: `Client Side Tools`,
+      description: `An app demonstrating how to call tools on the client side to build interactive apps.`
+    }
+  ]}
+>
+
+<TabSection tab="chat-ux">
+The [Chat UX template](https://github.com/gensx-inc/chat-ux-template) is a full-featured chat application with streaming, tools, and thread history.
+
+<a href="https://chat-demo.gensx.com" target="_blank" rel="noopener noreferrer">
+  <div className="my-4 w-full lg:w-5/6 mx-auto">
+      <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2 italic">
+      Click to try the live demo
+    </div>
+    <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+      <Image
+        src="/templates/chat-ux.png"
+        alt="Chat UX template interface showing a chat application with streaming messages and tool integration"
+        width={500}
+        height={350}
+        className="w-full h-auto"
+      />
+    </div>
+
+  </div>
+</a>
+
+This Next.js chat template provides a great starting point for building chat-based applications with GenSX. Key features include:
+
+- **Streaming chat**: Real-time message streaming with instant responses
+- **AI thinking**: Visible AI reasoning process before generating responses
+- **Tool integration**: Built-in tools for web scraping, search, and data processing
+- **Thread history**: Persistent chat history using GenSX Storage, separated by user
+
+</TabSection>
+
+<TabSection tab="deep-research">
+The [Deep Research template](https://github.com/gensx-inc/deep-research-template) is a deep research tool that writes detailed reports on any topic.
+
+<a href="https://deep-research-demo.gensx.com" target="_blank" rel="noopener noreferrer">
+  <div className="my-4 w-full lg:w-5/6 mx-auto">
+      <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2 italic">
+      Click to try the live demo
+    </div>
+    <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+      <Image
+        src="/templates/deep-research.png"
+        alt="Deep Research template interface showing research tools and analysis features"
+        width={500}
+        height={350}
+        className="w-full h-auto"
+      />
+    </div>
+
+  </div>
+</a>
+
+This Next.js app template provides both the front-end and back-end for a deep research tool with results iteratively streamed to the app to keep users engaged. Key features include:
+
+- **Multi-step streaming workflow**: Iterative research process that builds comprehensive reports
+- **Streaming UX**: The entire research process is streamed in real-time and users can see the results of each step including text from search results
+- **Web search and summarization**: Web search using Tavily along with extractive summarization to manage context size
+- **Detailed report generation**: Creates structured, in-depth reports on any research topic
+- **History**: Persistent storage of research history for each user
+
+</TabSection>
+
+<TabSection tab="draft-pad">
+The [Draft Pad template](https://github.com/gensx-inc/draft-pad-template) is a real-time collaborative writing and editing tool with versioning and diffing.
+
+<a href="https://draft-pad-demo.gensx.com" target="_blank" rel="noopener noreferrer">
+  <div className="my-4 w-full lg:w-5/6 mx-auto">
+      <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2 italic">
+      Click to try the live demo
+    </div>
+    <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+      <Image
+        src="/templates/draft-pad.png"
+        alt="Draft Pad template interface showing collaborative writing and editing features"
+        width={500}
+        height={350}
+        className="w-full h-auto"
+      />
+    </div>
+
+  </div>
+</a>
+
+This Next.js template shows how to build AI-powered writing tools with GenSX workflows. Key features include:
+
+- **Real-time streaming**: Content updates live as the AI generates text
+- **Interactive chat**: Conversational interface with full message history
+- **Draft versioning**: Track changes and navigate between different versions
+- **Live progress tracking**: See detailed workflow progress and event updates
+- **Multi-provider support**: Works with OpenAI, Anthropic, Google, and many other AI providers
+
+</TabSection>
+
+<TabSection tab="client-side-tools">
+The [Client Side Tools template](https://github.com/gensx-inc/client-side-tools-template) is an app showing how to call tools on the client side to build interactive apps. This is demonstrated via a "zap map" application that allows AI to control the map including moving the map around and placing markers.
+
+<a href="https://map-demo.gensx.com" target="_blank" rel="noopener noreferrer">
+  <div className="my-4 w-full lg:w-5/6 mx-auto">
+      <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2 italic">
+      Click to try the live demo
+    </div>
+    <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+      <Image
+        src="/templates/map-agent.png"
+        alt="Client Side Tools template interface showing AI-powered map and utility features"
+        width={500}
+        height={350}
+        className="w-full h-auto"
+      />
+    </div>
+
+  </div>
+</a>
+
+</TabSection>
+
+## Log in to GenSX
+
+If you haven't already, download the GenSX CLI and log in to GenSX using the following commands:
+
+```bash
+# Install the CLI
+npm i -g gensx
+
+# Log in to GenSX Cloud
+gensx login
+```
+
+You’ll be redirected to the GenSX website and will need to create an account if you don’t have one already.
+
+## Download the template
+
+Next, download the template by running the following command:
+
+<TabSection tab="chat-ux">
+```bash
+gensx template clone chat-ux
+```
+
+This will clone the template into a new directory called `chat-ux`.
+
+Alternatively, you can [create your own GitHub repository from the template](https://github.com/gensx-inc/chat-ux-template/generate) and then clone it yourself.
+
+</TabSection>
+
+<TabSection tab="deep-research">
+```bash
+gensx template clone deep-research
+```
+
+This will clone the template into a new directory called `deep-research`.
+
+Alternatively, you can [create your own GitHub repository from the template](https://github.com/gensx-inc/deep-research-template/generate) and then clone it yourself.
+
+</TabSection>
+
+<TabSection tab="draft-pad">
+```bash
+gensx template clone draft-pad
+```
+
+This will clone the template into a new directory called `draft-pad`.
+
+Alternatively, you can [create your own GitHub repository from the template](https://github.com/gensx-inc/draft-pad-template/generate) and then clone it yourself.
+
+</TabSection>
+
+<TabSection tab="client-side-tools">
+```bash
+gensx template clone client-side-tools
+```
+
+This will clone the template into a new directory called `client-side-tools`.
+
+Alternatively, you can [create your own GitHub repository from the template](https://github.com/gensx-inc/client-side-tools-template/generate) and then clone it yourself.
+
+</TabSection>
+
+## Run the template
+
+Now that you've cloned the template, navigate to the template directory:
+
+<TabSection tab="chat-ux">
+```bash
+cd chat-ux
+```
+
+Next, configure the required API keys for your template. This template requires [Tavily](https://tavily.com), [Anthropic](https://www.anthropic.com), and [OpenAI](https://openai.com) API keys.
+
+```bash
+export TAVILY_API_KEY=your-api-key
+export ANTHROPIC_API_KEY=your-api-key
+```
+</TabSection>
+
+<TabSection tab="deep-research">
+```bash
+cd deep-research
+```
+
+Next, configure the required API keys for your template. This template requires [Tavily](https://tavily.com), [Anthropic](https://www.anthropic.com), and [OpenAI](https://openai.com) API keys.
+
+```bash
+export TAVILY_API_KEY=your-api-key
+export ANTHROPIC_API_KEY=your-api-key
+export OPENAI_API_KEY=your-api-key
+```
+</TabSection>
+
+<TabSection tab="draft-pad">
+```bash
+cd draft-pad
+```
+
+Next, configure the required API keys for your template. This template requires at least one AI provider API key. You can use [Anthropic](https://www.anthropic.com), [OpenAI](https://openai.com), [Google](https://ai.google.dev), or any other supported provider shown below.
+
+```bash
+# Choose one or more AI providers
+
+# OpenAI
+export OPENAI_API_KEY=your-api-key
+
+# Anthropic
+export ANTHROPIC_API_KEY=your-api-key
+
+# Google
+export GOOGLE_GENERATIVE_AI_API_KEY=your-google-api-key
+
+# Mistral
+export MISTRAL_API_KEY=your-mistral-api-key
+
+# Cohere
+export COHERE_API_KEY=your-cohere-api-key
+
+# Amazon Bedrock (AWS)
+export AWS_ACCESS_KEY_ID=your-aws-access-key
+export AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+export AWS_REGION=us-east-1
+
+# Azure OpenAI
+export AZURE_OPENAI_API_KEY=your-azure-openai-api-key
+export AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+
+# DeepSeek
+export DEEPSEEK_API_KEY=your-deepseek-api-key
+
+# Groq
+export GROQ_API_KEY=your-groq-api-key
+
+# xAI (Grok)
+export XAI_API_KEY=your-xai-api-key
+```
+</TabSection>
+
+<TabSection tab="client-side-tools">
+```bash
+cd client-side-tools
+```
+
+Next, configure the required API keys for your template. This template requires both [Tavily](https://tavily.com) and [Anthropic](https://www.anthropic.com) API keys.
+
+```bash
+export TAVILY_API_KEY=your-api-key
+export ANTHROPIC_API_KEY=your-api-key
+```
+</TabSection>
+
+
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+This will start the Next.js app on [localhost:3000](http://localhost:3000) and run the GenSX workflows on [localhost:1337](http://localhost:1337/swagger-ui).
+
+You should see an output in the CLI that looks something like this:
+
+<TabSection tab="chat-ux">
+```bash
+[0]
+[0] > @examples/chat-ux@0.1.0 dev:next
+[0] > next dev
+[0]
+[1]
+[1] > @examples/chat-ux@0.1.0 dev:gensx
+[1] > gensx start ./gensx/workflows.ts
+[1]
+[1] Starting GenSX dev server...
+[0]    ▲ Next.js 15.3.3
+[0]    - Local:        http://localhost:3000
+[0]    - Network:      http://192.168.0.93:3000
+[0]
+[0]  ✓ Starting...
+[1]
+[1] 🚀 GenSX Dev Server running at  http://localhost:1337
+[1] 🧪 Swagger UI available at      http://localhost:1337/swagger-ui
+[1]
+[1] ╭──────────────────────────────────────────────────────────────────────────────╮
+[1] │ Available workflows:                                                         │
+[1] │ ──────────────────────────────────────────────────────────────────────────── │
+[1] │ Chat:                   http://localhost:1337/workflows/Chat                 │
+[1] ╰──────────────────────────────────────────────────────────────────────────────╯
+[1]
+[1] Listening for changes... 4:15:56 PM
+[0]  ✓ Ready in 850ms
+```
+
+For more detailed information about the template, check out the [template's README](https://github.com/gensx-inc/chat-ux-template/blob/main/README.md).
+</TabSection>
+
+<TabSection tab="deep-research">
+```bash
+[1]
+[1] > @examples/deep-research@0.1.0 dev:gensx
+[1] > gensx start ./gensx/workflows.ts
+[1]
+[0]
+[0] > @examples/deep-research@0.1.0 dev:next
+[0] > next dev
+[0]
+[1] Starting GenSX dev server...
+[0]    ▲ Next.js 15.3.3
+[0]    - Local:        http://localhost:3000
+[0]    - Network:      http://192.168.0.93:3000
+[0]
+[0]  ✓ Starting...
+[1]
+[1] 🚀 GenSX Dev Server running at  http://localhost:1337
+[1] 🧪 Swagger UI available at      http://localhost:1337/swagger-ui
+[1]
+[1] ╭──────────────────────────────────────────────────────────────────────────────╮
+[1] │ Available workflows:                                                         │
+[1] │ ──────────────────────────────────────────────────────────────────────────── │
+[1] │ DeepResearch:           http://localhost:1337/workflows/DeepResearch         │
+[1] ╰──────────────────────────────────────────────────────────────────────────────╯
+[1]
+[1] Listening for changes... 9:02:33 PM
+[0]  ✓ Ready in 1148ms
+```
+
+For more detailed information about the template, check out the [template's README](https://github.com/gensx-inc/deep-research-template/blob/main/README.md).
+</TabSection>
+
+<TabSection tab="draft-pad">
+```bash
+[1]
+[1] > draft-pad@0.1.0 dev:gensx /Users/some-user/source/draft-pad
+[1] > npx gensx@latest start ./gensx/workflows.ts
+[1]
+[0]
+[0] > draft-pad@0.1.0 dev:next /Users/some-user/source/draft-pad
+[0] > next dev -p 3100
+[0]
+[0]    ▲ Next.js 15.3.3
+[0]    - Local:        http://localhost:3100
+[0]    - Network:      http://192.168.0.93:3100
+[0]
+[0]  ✓ Starting...
+[0]  ✓ Ready in 942ms
+[1] Starting GenSX dev server...
+[1]
+[1] 🚀 GenSX Dev Server running at  http://localhost:1337
+[1] 🧪 Swagger UI available at      http://localhost:1337/swagger-ui
+[1]
+[1] ╭──────────────────────────────────────────────────────────────────────────────╮
+[1] │ Available workflows:                                                         │
+[1] │ ──────────────────────────────────────────────────────────────────────────── │
+[1] │ updateDraft:            http://localhost:1337/workflows/updateDraft          │
+[1] ╰──────────────────────────────────────────────────────────────────────────────╯
+[1]
+[1] Listening for changes... 9:03:22 PM
+```
+
+For more detailed information about the template, check out the [template's README](https://github.com/gensx-inc/draft-pad-template/blob/main/README.md).
+</TabSection>
+
+<TabSection tab="client-side-tools">
+```bash
+[1]
+[1] > @examples/client-side-tools@0.1.0 dev:gensx
+[1] > npx gensx@latest start ./gensx/workflows.ts
+[1]
+[0]
+[0] > @examples/client-side-tools@0.1.0 dev:next
+[0] > NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN} next dev -p 3002
+[0]
+[0]    ▲ Next.js 15.3.3
+[0]    - Local:        http://localhost:3002
+[0]    - Network:      http://192.168.0.93:3002
+[0]
+[0]  ✓ Starting...
+[0]  ✓ Ready in 915ms
+[1] Starting GenSX dev server...
+[1]
+[1] 🚀 GenSX Dev Server running at  http://localhost:1337
+[1] 🧪 Swagger UI available at      http://localhost:1337/swagger-ui
+[1]
+[1] ╭──────────────────────────────────────────────────────────────────────────────╮
+[1] │ Available workflows:                                                         │
+[1] │ ──────────────────────────────────────────────────────────────────────────── │
+[1] │ MapAgent:               http://localhost:1337/workflows/MapAgent             │
+[1] ╰──────────────────────────────────────────────────────────────────────────────╯
+[1]
+[1] Listening for changes... 9:04:59 PM
+```
+
+For more detailed information about the template, check out the [template's README](https://github.com/gensx-inc/client-side-tools-template/blob/main/README.md).
+</TabSection>
+
+And with that, you're ready to start customizing the template! You can stop here or continue on to customize and then deploy the workflows and web app template.
+
+
+
+## Deploy the template
+
+Now that you got the template up and running you're ready to deploy it. You'll need to deploy both the GenSX workflows and the Next.js app.
+
+### Deploy the GenSX workflows
+
+You can deploy the GenSX workflows by running the following command. Make sure you've already exported the environment variables:
+
+```bash
+npm run deploy
+```
+
+You can see the full command in the `package.json` file but under the hood, this is calling the `gensx deploy` command with the environment variables set.
+
+### Deploy the Next.js app
+
+You can deploy the Next.js app to [Vercel](https://vercel.com) by running the following command:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Log in to Vercel
+vercel login
+
+# Deploy the Next.js app
+vercel
+```
+
+Walk through the prompts to deploy the app. Once you finish, you'll need to set the following environment variables for the app. These are needed for the web app to call the GenSX workflows and to use GenSX Cloud storage:
+
+```bash
+vercel env add GENSX_API_KEY
+vercel env add GENSX_ORG
+vercel env add GENSX_PROJECT
+vercel env add GENSX_ENV
+```
+
+</Tabs>

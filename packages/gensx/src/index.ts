@@ -12,6 +12,8 @@ import {
 import { SelectEnvironmentUI } from "./commands/environment/select.js";
 import { ShowEnvironmentUI } from "./commands/environment/show.js";
 import { UnselectEnvironmentUI } from "./commands/environment/unselect.js";
+import { CloneExampleUI } from "./commands/examples/clone.js";
+import { ListExamplesUI } from "./commands/examples/list.js";
 import { headlessDeploy } from "./commands/headless-deploy.js";
 import { LoginUI } from "./commands/login.js";
 import { NewCommandOptions, NewProjectUI } from "./commands/new.js";
@@ -334,6 +336,44 @@ export async function runCLI() {
               description: options?.description,
               environmentName: options?.env,
               yes: options?.yes,
+            }),
+          );
+          waitUntilExit().then(resolve).catch(reject);
+        });
+      },
+    );
+
+  // Examples management commands
+  const examplesCommand = program
+    .command("examples")
+    .description("Manage GenSX examples")
+    .action(async () => {
+      return new Promise<void>((resolve, reject) => {
+        const { waitUntilExit } = render(React.createElement(ListExamplesUI));
+        waitUntilExit().then(resolve).catch(reject);
+      });
+    });
+
+  examplesCommand
+    .command("clone")
+    .description("Clone an example project")
+    .argument("<example-name>", "Name of the example to clone")
+    .option("-p, --project <name>", "Project name to clone to")
+    .option("-y, --yes", "Automatically answer yes to all prompts", false)
+    .action(
+      async (
+        exampleName: string,
+        options: {
+          project?: string;
+          yes?: boolean;
+        },
+      ) => {
+        return new Promise<void>((resolve, reject) => {
+          const { waitUntilExit } = render(
+            React.createElement(CloneExampleUI, {
+              exampleName,
+              projectName: options.project,
+              yes: options.yes,
             }),
           );
           waitUntilExit().then(resolve).catch(reject);
