@@ -21,18 +21,6 @@ export function generateExecutionId(): string {
 }
 
 /**
- * Create a local scoped token that encodes the execution scope in base64 with a
- * `gensx_lst_` prefix.
- */
-export function encodeLocalScopedToken(
-  executionScope: Record<string, unknown>,
-): string {
-  const scopeJson = JSON.stringify(executionScope);
-  const encoded = Buffer.from(scopeJson, "utf8").toString("base64");
-  return `gensx_lst_${encoded}`;
-}
-
-/**
  * Decode a local scoped token back into an execution scope object. Returns
  * undefined if the token is not a local scoped token or cannot be decoded.
  */
@@ -52,4 +40,16 @@ export function decodeLocalScopedToken(
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Create a local scoped token that encodes the execution scope in base64 with a
+ * `gensx_lst_` prefix.
+ */
+export function encodeLocalScopedToken(
+  executionScope: Record<string, unknown>,
+): string {
+  const scopeJson = JSON.stringify(executionScope);
+  const encoded = Buffer.from(scopeJson, "utf8").toString("base64");
+  return `gensx_lst_${encoded}`;
 }
