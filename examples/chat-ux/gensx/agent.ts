@@ -1,15 +1,15 @@
+import { SharedV2ProviderMetadata, LanguageModelV2 } from "@ai-sdk/provider";
 import * as gensx from "@gensx/core";
 import { streamText } from "@gensx/vercel-ai";
 import {
-  CoreMessage,
+  ModelMessage,
   ToolSet,
   wrapLanguageModel,
   TextPart,
   ToolCallPart,
-  LanguageModelV1,
+  stepCountIs,
+  AssistantContent,
 } from "ai";
-
-import { type LanguageModelV1ProviderMetadata } from "@ai-sdk/provider";
 
 interface ReasoningPart {
   type: "reasoning";
@@ -17,11 +17,11 @@ interface ReasoningPart {
 }
 
 interface AgentProps {
-  messages: CoreMessage[];
+  messages: ModelMessage[];
   tools: ToolSet;
-  model: LanguageModelV1;
+  model: LanguageModelV2;
   maxSteps?: number;
-  providerOptions?: LanguageModelV1ProviderMetadata;
+  providerOptions?: SharedV2ProviderMetadata;
 }
 
 export const Agent = gensx.Component(
@@ -34,7 +34,7 @@ export const Agent = gensx.Component(
     providerOptions,
   }: AgentProps) => {
     // Track all messages including responses
-    const allMessages: CoreMessage[] = [];
+    const allMessages: ModelMessage[] = [];
 
     const publishMessages = () => {
       gensx.publishObject("messages", {
@@ -48,11 +48,12 @@ export const Agent = gensx.Component(
         {
           wrapGenerate: async ({ doGenerate }) => {
             const result = await doGenerate();
+            console.log("result", result);
 
             // Add assistant response to messages
             allMessages.push({
               role: "assistant",
-              content: result.text ?? "",
+              content: result.content as AssistantContent,
             });
 
             publishMessages();
@@ -62,12 +63,12 @@ export const Agent = gensx.Component(
           wrapStream: async ({ doStream, params }) => {
             // Find the last assistant message and pull in any tool responses after it
             const lastAssistantIndex = params.prompt.findLastIndex(
-              (msg: CoreMessage) => msg.role === "assistant",
+              (msg: ModelMessage) => msg.role === "assistant",
             );
             if (lastAssistantIndex !== -1) {
               const toolMessagesAfterLastAssistant = params.prompt
                 .slice(lastAssistantIndex + 1)
-                .filter((msg: CoreMessage) => msg.role === "tool");
+                .filter((msg: ModelMessage) => msg.role === "tool");
               allMessages.push(...toolMessagesAfterLastAssistant);
             }
 
@@ -89,8 +90,9 @@ export const Agent = gensx.Component(
 
             const transformStream = new TransformStream({
               transform(chunk, controller) {
+                console.log("chunk", chunk);
                 if (chunk.type === "text-delta") {
-                  accumulatedText += chunk.textDelta;
+                  accumulatedText += chunk.delta;
 
                   // Update or add text part
                   const existingTextPartIndex = contentParts.findIndex(
@@ -112,8 +114,8 @@ export const Agent = gensx.Component(
                     ...contentParts,
                   ];
                   publishMessages();
-                } else if (chunk.type === "reasoning") {
-                  accumulatedReasoning += chunk.textDelta;
+                } else if (chunk.type === "reasoning-delta") {
+                  accumulatedReasoning += chunk.delta;
 
                   // Update or add reasoning part
                   const existingReasoningPartIndex = contentParts.findIndex(
@@ -138,13 +140,13 @@ export const Agent = gensx.Component(
                   publishMessages();
                 } else if (chunk.type === "tool-call") {
                   // Add tool call part - ensure args is an object, not a string
-                  let parsedArgs = chunk.args;
-                  if (typeof chunk.args === "string") {
+                  let parsedArgs = chunk.input;
+                  if (typeof chunk.input === "string") {
                     try {
-                      parsedArgs = JSON.parse(chunk.args);
+                      parsedArgs = JSON.parse(chunk.input);
                     } catch {
-                      console.warn("Failed to parse tool args:", chunk.args);
-                      parsedArgs = chunk.args;
+                      console.warn("Failed to parse tool args:", chunk.input);
+                      parsedArgs = chunk.input;
                     }
                   }
 
@@ -152,7 +154,7 @@ export const Agent = gensx.Component(
                     type: "tool-call",
                     toolCallId: chunk.toolCallId,
                     toolName: chunk.toolName,
-                    args: parsedArgs,
+                    input: parsedArgs,
                   });
 
                   allMessages[assistantMessageIndex].content = [
@@ -196,7 +198,7 @@ export const Agent = gensx.Component(
 
     const result = streamText({
       messages: filteredMessages,
-      maxSteps,
+      stopWhen: stepCountIs(maxSteps),
       model: wrappedLanguageModel,
       tools,
       providerOptions,
