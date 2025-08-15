@@ -1,7 +1,7 @@
 import { Box, Text } from "ink";
 import { render } from "ink-testing-library";
 import React from "react";
-import { expect, it, suite, vi } from "vitest";
+import { afterEach, expect, it, suite, vi } from "vitest";
 
 import { CreateProjectUI } from "../../../src/commands/project/create.js";
 import * as projectModel from "../../../src/models/projects.js";
@@ -9,36 +9,41 @@ import * as envConfig from "../../../src/utils/env-config.js";
 import * as projectConfig from "../../../src/utils/project-config.js";
 import { waitForText } from "../../test-helpers.js";
 
-// Define the type for the global callback
-declare global {
-  var __selectInputCallback:
-    | ((item: { label: string; value: string }) => void)
-    | undefined;
-  var __textInputCallback: ((value: string) => void) | undefined;
-}
+// Setup Ink mocks for this suite
+const { textInput, selectInput } = vi.hoisted(() => ({
+  textInput: {
+    onChange: undefined as ((value: string) => void) | undefined,
+    onSubmit: undefined as ((value: string) => void) | undefined,
+  },
+  selectInput: {
+    onSelect: undefined as
+      | ((item: { label: string; value: string }) => void)
+      | undefined,
+    options: [] as { label: string; value: string }[],
+  },
+}));
 
-// Mock SelectInput component
+vi.mock("ink-text-input", () => ({
+  __esModule: true,
+  default: ({ onSubmit }: { onSubmit: (value: string) => void }) => {
+    textInput.onSubmit = onSubmit;
+    return React.createElement(Text, {}, "input");
+  },
+}));
+
 vi.mock("ink-select-input", () => ({
+  __esModule: true,
   default: ({
     onSelect,
   }: {
     onSelect: (item: { label: string; value: string }) => void;
   }) => {
-    // Store the onSelect callback for later use
-    global.__selectInputCallback = onSelect;
+    selectInput.onSelect = onSelect;
+    selectInput.options = [];
     return React.createElement(Box, {}, [
       React.createElement(Text, { key: "yes" }, "❯ Yes"),
       React.createElement(Text, { key: "no" }, "  No"),
     ]);
-  },
-}));
-
-// Mock TextInput component
-vi.mock("ink-text-input", () => ({
-  default: ({ onSubmit }: { onSubmit: (value: string) => void }) => {
-    // Store the onSubmit callback for later use
-    global.__textInputCallback = onSubmit;
-    return React.createElement(Text, {}, "input");
   },
 }));
 
@@ -55,6 +60,13 @@ vi.mock("../../../src/utils/project-config.js", () => ({
 vi.mock("../../../src/utils/env-config.js", () => ({
   validateAndSelectEnvironment: vi.fn().mockResolvedValue(true),
 }));
+afterEach(() => {
+  vi.clearAllMocks();
+  selectInput.onSelect = undefined;
+  selectInput.options = [];
+  textInput.onChange = undefined;
+  textInput.onSubmit = undefined;
+});
 
 suite("project create Ink UI", () => {
   it("should create project with specified name and environment", async () => {
@@ -82,9 +94,7 @@ suite("project create Ink UI", () => {
     await waitForText(lastFrame, /Create this project\?/);
 
     // Simulate selecting "Yes" from SelectInput
-    if (global.__selectInputCallback) {
-      global.__selectInputCallback({ label: "Yes", value: "yes" });
-    }
+    selectInput.onSelect?.({ label: "Yes", value: "yes" });
 
     // Wait for success message
     await waitForText(lastFrame, /Project test-project created successfully/);
@@ -130,9 +140,7 @@ suite("project create Ink UI", () => {
     await waitForText(lastFrame, /Create this project\?/);
 
     // Simulate selecting "Yes" from SelectInput
-    if (global.__selectInputCallback) {
-      global.__selectInputCallback({ label: "Yes", value: "yes" });
-    }
+    selectInput.onSelect?.({ label: "Yes", value: "yes" });
 
     // Wait for success message
     await waitForText(lastFrame, /Project config-project created successfully/);
@@ -160,9 +168,7 @@ suite("project create Ink UI", () => {
     await waitForText(lastFrame, /Enter project name:/);
 
     // Simulate entering empty project name
-    if (global.__textInputCallback) {
-      global.__textInputCallback(""); // Submit empty string
-    }
+    textInput.onSubmit?.(""); // Submit empty string
 
     // Wait for error message with a longer timeout
     await waitForText(
@@ -224,9 +230,7 @@ suite("project create Ink UI", () => {
     await waitForText(lastFrame, /Create this project\?/);
 
     // Simulate selecting "No" from SelectInput
-    if (global.__selectInputCallback) {
-      global.__selectInputCallback({ label: "No", value: "no" });
-    }
+    selectInput.onSelect?.({ label: "No", value: "no" });
 
     // Wait for error message
     await waitForText(lastFrame, /Project creation cancelled/);
@@ -295,18 +299,14 @@ suite("project create Ink UI", () => {
     await waitForText(lastFrame, /Enter initial environment name:/);
 
     // Simulate entering environment name
-    if (global.__textInputCallback) {
-      global.__textInputCallback("custom-env");
-    }
+    textInput.onSubmit?.("custom-env");
 
     // Wait for confirmation prompt
     await waitForText(lastFrame, /Project Details/);
     await waitForText(lastFrame, /Create this project\?/);
 
     // Simulate selecting "Yes" from SelectInput
-    if (global.__selectInputCallback) {
-      global.__selectInputCallback({ label: "Yes", value: "yes" });
-    }
+    selectInput.onSelect?.({ label: "Yes", value: "yes" });
 
     // Wait for success message
     await waitForText(lastFrame, /Project test-project created successfully/);

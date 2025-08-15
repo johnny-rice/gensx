@@ -10,33 +10,22 @@ import { afterEach, beforeEach, expect, it, suite, vi } from "vitest";
 import { NewProjectUI } from "../../src/commands/new.js";
 import * as config from "../../src/utils/config.js";
 import { exec } from "../../src/utils/exec.js";
-import { waitForText } from "../test-helpers.js";
+import { waitForText, waitUntil } from "../test-helpers.js";
 
-// Define the type for the global callback
-// For ink-text-input and ink-select-input
-// We'll use global variables to store the onChange/onSubmit/onSelect handlers
-
-declare global {
-  var __textInputOnChange: ((value: string) => void) | undefined;
-  var __textInputOnSubmit: ((value: string) => void) | undefined;
-  var __selectInputOnSelect:
-    | ((item: { label: string; value: string }) => void)
-    | undefined;
-  var __selectInputOptions: { label: string; value: string }[] | undefined;
-}
-
-// Mock dependencies
-vi.mock("../../src/utils/exec.js", () => ({
-  exec: vi.fn(() => new Promise((resolve) => setTimeout(resolve, 10))),
+// Setup Ink mocks locally to avoid global state between tests
+const { textInput, selectInput } = vi.hoisted(() => ({
+  textInput: {
+    onChange: undefined as ((value: string) => void) | undefined,
+    onSubmit: undefined as ((value: string) => void) | undefined,
+  },
+  selectInput: {
+    onSelect: undefined as
+      | ((item: { label: string; value: string }) => void)
+      | undefined,
+    options: [] as { label: string; value: string }[],
+  },
 }));
-vi.mock("../../src/utils/config.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof config>();
-  return {
-    ...actual,
-    readConfig: vi.fn(),
-  };
-});
-// Mock ink-text-input and ink-select-input to capture handlers
+
 vi.mock("ink-text-input", () => ({
   __esModule: true,
   default: (props: {
@@ -44,21 +33,20 @@ vi.mock("ink-text-input", () => ({
     onChange: (v: string) => void;
     onSubmit: (v: string) => void;
   }) => {
-    global.__textInputOnChange = props.onChange;
-    global.__textInputOnSubmit = props.onSubmit;
+    textInput.onChange = props.onChange;
+    textInput.onSubmit = props.onSubmit;
     return React.createElement("input", { value: props.value });
   },
 }));
+
 vi.mock("ink-select-input", () => ({
   __esModule: true,
   default: (props: {
     items: { label: string; value: string }[];
     onSelect: (item: { label: string; value: string }) => void;
   }) => {
-    // Store a global callback to simulate selection
-    global.__selectInputOptions = props.items;
-    global.__selectInputOnSelect = props.onSelect;
-    // Render a Box with Text children for each item
+    selectInput.onSelect = props.onSelect;
+    selectInput.options = props.items;
     return React.createElement(
       Box,
       {},
@@ -73,11 +61,26 @@ vi.mock("ink-select-input", () => ({
   },
 }));
 
+// Mock dependencies
+vi.mock("../../src/utils/exec.js", () => ({
+  exec: vi.fn(() => new Promise((resolve) => setTimeout(resolve, 10))),
+}));
+vi.mock("../../src/utils/config.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof config>();
+  return {
+    ...actual,
+    readConfig: vi.fn(),
+  };
+});
 suite("new command UI", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    textInput.onChange = undefined;
+    textInput.onSubmit = undefined;
+    selectInput.onSelect = undefined;
+    selectInput.options = [];
     tempDir = await mkdtemp(path.join(os.tmpdir(), "gensx-interactive-test-"));
     vi.mocked(config.readConfig).mockResolvedValue({
       config: {
@@ -89,11 +92,11 @@ suite("new command UI", () => {
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
-    delete global.__textInputOnChange;
-    delete global.__textInputOnSubmit;
-    delete global.__selectInputOnSelect;
-    delete global.__selectInputOptions;
+    vi.clearAllMocks();
+    textInput.onChange = undefined;
+    textInput.onSubmit = undefined;
+    selectInput.onSelect = undefined;
+    selectInput.options = [];
   });
 
   it("should create a project with description and select AI assistants", async () => {
@@ -106,27 +109,29 @@ suite("new command UI", () => {
 
     // Wait for description prompt
     await waitForText(lastFrame, /Enter a project description/);
+    await waitUntil(() => !!textInput.onChange && !!textInput.onSubmit);
 
     // Simulate entering a description
-    if (!global.__textInputOnChange || !global.__textInputOnSubmit)
+    if (!textInput.onChange || !textInput.onSubmit)
       throw new Error("TextInput handlers not found");
-    global.__textInputOnChange("A test project description");
-    global.__textInputOnSubmit("A test project description");
+    textInput.onChange("A test project description");
+    textInput.onSubmit("A test project description");
 
     // Wait for dependencies to install
     await waitForText(lastFrame, /Installing dependencies/);
 
     // Wait for AI assistant selection
     await waitForText(lastFrame, /Select AI assistants to integrate/);
+    await waitUntil(
+      () => !!selectInput.onSelect && selectInput.options.length > 0,
+    );
 
     // Simulate selecting an assistant
-    if (!global.__selectInputOnSelect || !global.__selectInputOptions)
-      throw new Error("SelectInput handler/options not found");
-    const claudeOption = global.__selectInputOptions.find(
+    const claudeOption = selectInput.options.find(
       (opt) => opt.value === "@gensx/claude-md",
     );
     if (!claudeOption) throw new Error("Claude option not found");
-    global.__selectInputOnSelect(claudeOption);
+    selectInput.onSelect!(claudeOption);
 
     // Wait for done message
     await waitForText(lastFrame, /Successfully created GenSX project/);
@@ -148,23 +153,23 @@ suite("new command UI", () => {
 
     // Wait for description prompt
     await waitForText(lastFrame, /Enter a project description/);
-    if (!global.__textInputOnChange || !global.__textInputOnSubmit)
+    await waitUntil(() => !!textInput.onChange && !!textInput.onSubmit);
+    if (!textInput.onChange || !textInput.onSubmit)
       throw new Error("TextInput handlers not found");
-    global.__textInputOnChange("");
-    global.__textInputOnSubmit("");
+    textInput.onChange("");
+    textInput.onSubmit("");
 
     // Wait for dependencies to install
     await waitForText(lastFrame, /Installing dependencies/);
     await waitForText(lastFrame, /Select AI assistants to integrate/);
+    await waitUntil(
+      () => !!selectInput.onSelect && selectInput.options.length > 0,
+    );
 
     // Simulate selecting "all"
-    if (!global.__selectInputOnSelect || !global.__selectInputOptions)
-      throw new Error("SelectInput handler/options not found");
-    const allOption = global.__selectInputOptions.find(
-      (opt) => opt.value === "all",
-    );
+    const allOption = selectInput.options.find((opt) => opt.value === "all");
     if (!allOption) throw new Error("All option not found");
-    global.__selectInputOnSelect(allOption);
+    selectInput.onSelect!(allOption);
 
     await waitForText(lastFrame, /Successfully created GenSX project/);
     expect(exec).toHaveBeenCalledWith(
@@ -203,23 +208,23 @@ suite("new command UI", () => {
 
     // Wait for description prompt
     await waitForText(lastFrame, /Enter a project description/);
-    if (!global.__textInputOnChange || !global.__textInputOnSubmit)
+    await waitUntil(() => !!textInput.onChange && !!textInput.onSubmit);
+    if (!textInput.onChange || !textInput.onSubmit)
       throw new Error("TextInput handlers not found");
-    global.__textInputOnChange("");
-    global.__textInputOnSubmit("");
+    textInput.onChange("");
+    textInput.onSubmit("");
 
     // Wait for dependencies to install
     await waitForText(lastFrame, /Installing dependencies/);
     await waitForText(lastFrame, /Select AI assistants to integrate/);
+    await waitUntil(
+      () => !!selectInput.onSelect && selectInput.options.length > 0,
+    );
 
     // Simulate selecting "none"
-    if (!global.__selectInputOnSelect || !global.__selectInputOptions)
-      throw new Error("SelectInput handler/options not found");
-    const noneOption = global.__selectInputOptions.find(
-      (opt) => opt.value === "none",
-    );
+    const noneOption = selectInput.options.find((opt) => opt.value === "none");
     if (!noneOption) throw new Error("None option not found");
-    global.__selectInputOnSelect(noneOption);
+    selectInput.onSelect!(noneOption);
 
     await waitForText(lastFrame, /Successfully created GenSX project/);
     // No exec for assistants
@@ -238,30 +243,33 @@ suite("new command UI", () => {
 
     // Wait for template selection
     await waitForText(lastFrame, /Select a project template/);
+    await waitUntil(
+      () => !!selectInput.onSelect && selectInput.options.length > 0,
+    );
 
     // Simulate selecting TypeScript template
-    if (!global.__selectInputOnSelect || !global.__selectInputOptions)
-      throw new Error("SelectInput handler/options not found");
-    const typescriptOption = global.__selectInputOptions.find(
+    const typescriptOption = selectInput.options.find(
       (opt) => opt.value === "typescript",
     );
     if (!typescriptOption) throw new Error("TypeScript option not found");
-    global.__selectInputOnSelect(typescriptOption);
+    selectInput.onSelect!(typescriptOption);
 
     // Wait for description prompt
     await waitForText(lastFrame, /Enter a project description/);
-    if (!global.__textInputOnChange || !global.__textInputOnSubmit)
+    await waitUntil(() => !!textInput.onChange && !!textInput.onSubmit);
+    if (!textInput.onChange || !textInput.onSubmit)
       throw new Error("TextInput handlers not found");
-    global.__textInputOnChange("");
-    global.__textInputOnSubmit("");
+    textInput.onChange("");
+    textInput.onSubmit("");
 
     // Skip AI assistants selection
     await waitForText(lastFrame, /Select AI assistants to integrate/);
-    const noneOption = global.__selectInputOptions.find(
-      (opt) => opt.value === "none",
+    await waitUntil(
+      () => !!selectInput.onSelect && selectInput.options.length > 0,
     );
+    const noneOption = selectInput.options.find((opt) => opt.value === "none");
     if (!noneOption) throw new Error("None option not found");
-    global.__selectInputOnSelect(noneOption);
+    selectInput.onSelect!(noneOption);
 
     await waitForText(lastFrame, /Successfully created GenSX project/);
 
@@ -282,26 +290,31 @@ suite("new command UI", () => {
 
     // Wait for template selection
     await waitForText(lastFrame, /Select a project template/);
+    await waitUntil(
+      () => !!selectInput.onSelect && selectInput.options.length > 0,
+    );
 
     // Simulate selecting Next.js template
-    const nextOption = global.__selectInputOptions!.find(
-      (opt) => opt.value === "next",
-    );
+    const nextOption = selectInput.options.find((opt) => opt.value === "next");
     if (!nextOption) throw new Error("Next.js option not found");
-    global.__selectInputOnSelect!(nextOption);
+    selectInput.onSelect!(nextOption);
 
     // Wait for description prompt
     await waitForText(lastFrame, /Enter a project description/);
-    global.__textInputOnChange!("");
-    global.__textInputOnSubmit!("");
+    await waitUntil(() => !!textInput.onChange && !!textInput.onSubmit);
+    if (!textInput.onChange || !textInput.onSubmit)
+      throw new Error("TextInput handlers not found");
+    textInput.onChange("");
+    textInput.onSubmit("");
 
     // Skip AI assistants selection
     await waitForText(lastFrame, /Select AI assistants to integrate/);
-    const noneOption = global.__selectInputOptions!.find(
-      (opt) => opt.value === "none",
+    await waitUntil(
+      () => !!selectInput.onSelect && selectInput.options.length > 0,
     );
+    const noneOption = selectInput.options.find((opt) => opt.value === "none");
     if (!noneOption) throw new Error("None option not found");
-    global.__selectInputOnSelect!(noneOption);
+    selectInput.onSelect!(noneOption);
 
     await waitForText(lastFrame, /Successfully created GenSX project/);
 
