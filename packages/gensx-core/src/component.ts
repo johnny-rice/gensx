@@ -471,6 +471,11 @@ export function Workflow<P extends object = {}, R = unknown>(
   Object.defineProperty(WorkflowFn, "__gensxWorkflow", {
     value: true,
   });
+  // Expose a stable, bundler-safe workflow name for runtime discovery
+  // This mirrors the explicit name string passed to gensx.Workflow(name, ...)
+  Object.defineProperty(WorkflowFn, "__gensxWorkflowName", {
+    value: name,
+  });
 
   return WorkflowFn;
 }
